@@ -1,8 +1,11 @@
+import Overview from '@/components/dashboard/overview'
 import React from 'react'
 
 function DashboardOverview() {
   return (
-    <div>DashboardOverview</div>
+    <div>
+      <Overview />
+    </div>
   )
 }
 
