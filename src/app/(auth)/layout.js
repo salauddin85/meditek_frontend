@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Authentication | HRM Pepoltek",
-  description: "Login and Authentication for HRM Project by Pepoltek Ltd",
+  title: "Authentication | Meditek",
+  description: "Login and Authentication for Meditek",
 };
 import "./auth.css";
 export default function AuthLayout({ children }) {

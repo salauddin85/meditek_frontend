@@ -25,11 +25,11 @@ const SidebarLogo = ({ hovered }) => {
     <div className="px-4 py-4 ">
       <div className=" flex items-center">
         <div className=" flex-1">
-          <Link href="/dashboard" className="flex items-center gap-x-3">
+          <Link href="/" className="flex items-center gap-x-3">
             <SiteLogo className="text-primary h-8 w-8" />
             {(!collapsed || hovered) && (
               <div className="flex-1  text-xl text-primary  font-semibold">
-                Pepoltek Ltd
+                MediTek
               </div>
             )}
           </Link>

@@ -2,8 +2,8 @@ import DashboardLayoutProvider from "@/components/dashboard/dashboard-layout-pro
 import "./dashboard.css";
 import Providers from "@/provider/providers";
 export const metadata = {
-  title: "Dashboard | HRM - Pepoltek",
-  description: "HR Dashboard by Pepoltek Ltd.",
+  title: "Dashboard | Meditek",
+  description: "Hospital Management Dashboard by Meditek.",
 };
 
 export default function DashboardLayout({ children }) {
