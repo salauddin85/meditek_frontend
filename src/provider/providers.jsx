@@ -12,6 +12,21 @@ import { themes } from "@/config/themes";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Filter out the "Encountered a script tag" warning in development
+// This is a known false positive with next-themes and React 19/Next 15+
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  const orig = console.error;
+  console.error = (...args) => {
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("Encountered a script tag")
+    ) {
+      return;
+    }
+    orig.apply(console, args);
+  };
+}
+
 const ThemeWrapper = ({ children }) => {
   const { theme, radius } = useThemeStore();
   const { resolvedTheme: mode } = useTheme();

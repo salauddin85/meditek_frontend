@@ -174,56 +174,56 @@
 }
 
 .dark {
-  --background: 222.2 47.4% 11.2%;
-  --foreground: 210 40% 98%;
+  --background: hsl(222.2 47.4% 11.2%);
+  --foreground: hsl(210 40% 98%);
 
-  --muted: 215 27.9% 16.9%;
-  --muted-foreground: 217.9 10.6% 64.9%;
+  --muted: hsl(215 27.9% 16.9%);
+  --muted-foreground: hsl(217.9 10.6% 64.9%);
 
-  --popover: 222.2 47.4% 11.2%;
-  --popover-foreground: 210 40% 98%;
+  --popover: hsl(222.2 47.4% 11.2%);
+  --popover-foreground: hsl(210 40% 98%);
 
-  --card: 215 27.9% 16.9%;
-  --card-foreground: 210 40% 98%;
+  --card: hsl(215 27.9% 16.9%);
+  --card-foreground: hsl(210 40% 98%);
 
-  --border: 215.3 25% 26.7%;
-  --input: 215 27.9% 16.9%;
+  --border: hsl(215.3 25% 26.7%);
+  --input: hsl(215 27.9% 16.9%);
 
-  --primary: 254 86% 58%;
+  --primary: hsl(254 86% 58%);
 
-  --secondary: 215.3 25% 26.7%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: hsl(215.3 25% 26.7%);
+  --secondary-foreground: hsl(210 40% 98%);
 
-  --accent: 215 27.9% 16.9%;
-  --accent-foreground: 210 40% 98%;
+  --accent: hsl(215 27.9% 16.9%);
+  --accent-foreground: hsl(210 40% 98%);
 
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 85.7% 97.3;
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 85.7% 97.3%);
 
-  --ring: 263.4 70% 50.4%;
+  --ring: hsl(263.4 70% 50.4%);
 
-  --success: 142.1 70.6% 45.3%;
-  --success-foreground: 138.5 76.5% 96.7%;
+  --success: hsl(142.1 70.6% 45.3%);
+  --success-foreground: hsl(138.5 76.5% 96.7%);
 
-  --info: 188.7 94.5% 42.7%;
-  --info-foreground: 183.2 100% 96.3%;
+  --info: hsl(188.7 94.5% 42.7%);
+  --info-foreground: hsl(183.2 100% 96.3%);
 
-  --warning: 24.6 95% 53.1%;
-  --warning-foreground: 33.3 100% 96.5%;
+  --warning: hsl(24.6 95% 53.1%);
+  --warning-foreground: hsl(33.3 100% 96.5%);
 
-  --border: 215.3 25% 26.7%;
-  --input: 217.2 32.6% 17.5%;
+  --border: hsl(215.3 25% 26.7%);
+  --input: hsl(217.2 32.6% 17.5%);
 
-  --default-950: 210 40% 98%;
-  --default-900: 210 40% 96.1%;
-  --default-800: 214.3 31.8% 91.4%;
-  --default-700: 212.7 26.8% 83.9%;
-  --default-600: 215 20.2% 65.1%;
-  --default-500: 215.4 16.3% 46.9%;
-  --default-300: 215.3 19.3% 34.5%;
-  --default-200: 215.3 25% 26.7%;
-  --default-100: 217.2 32.6% 17.5%;
-  --default-50: 222.2 47.4% 11.2%;
+  --default-950: hsl(210 40% 98%);
+  --default-900: hsl(210 40% 96.1%);
+  --default-800: hsl(214.3 31.8% 91.4%);
+  --default-700: hsl(212.7 26.8% 83.9%);
+  --default-600: hsl(215 20.2% 65.1%);
+  --default-500: hsl(215.4 16.3% 46.9%);
+  --default-300: hsl(215.3 19.3% 34.5%);
+  --default-200: hsl(215.3 25% 26.7%);
+  --default-100: hsl(217.2 32.6% 17.5%);
+  --default-50: hsl(222.2 47.4% 11.2%);
 }
 
 .theme-zinc {
