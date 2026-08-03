@@ -1,10 +1,12 @@
-import RegPage from '@/components/auth/register/RegPage'
-import React from 'react'
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-function Registration() {
-  return (
-    <div><RegPage/></div>
-  )
+// The full registration wizard has moved to /auth/register
+export default function OldRegistrationPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/auth/register");
+  }, [router]);
+  return null;
 }
-
-export default Registration
