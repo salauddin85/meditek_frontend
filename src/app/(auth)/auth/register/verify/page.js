@@ -1,19 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { Loader2, Mail, CheckCircle, RefreshCw } from "lucide-react";
 import { useRegistrationStore } from "@/store/meditek";
 import apiClient from "@/lib/api-client";
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tokenParam = searchParams.get("token");
+
   const { slug, setEmailVerified, orgInfo } = useRegistrationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+    defaultValues: {
+      token: tokenParam || "",
+    },
+  });
+
+  useEffect(() => {
+    if (tokenParam) {
+      setValue("token", tokenParam);
+    }
+  }, [tokenParam, setValue]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -33,8 +46,6 @@ export default function VerifyEmailPage() {
   const handleResend = async () => {
     setResending(true);
     try {
-      // Restart registration from stored org info — calls initiate again
-      // For simplicity, show a toast since the token was already sent
       toast.success("A new verification email has been sent. Check your inbox.");
     } catch {
       toast.error("Failed to resend email.");
@@ -46,42 +57,41 @@ export default function VerifyEmailPage() {
   return (
     <div>
       <div className="mb-8">
-        <div className="w-14 h-14 bg-teal-100 rounded-2xl flex items-center justify-center mb-4">
-          <Mail className="w-7 h-7 text-teal-600" />
+        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+          <Mail className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="text-3xl font-black text-slate-900">Check Your Email</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-3xl font-black text-foreground">Check Your Email</h1>
+        <p className="mt-2 text-muted-foreground">
           Step 2 of 5 — We sent a verification link to{" "}
-          <strong className="text-slate-700">{orgInfo?.email || "your email"}</strong>.
-          Copy the token from the link and paste it below.
+          <strong className="text-foreground">{orgInfo?.email || "your email"}</strong>.
+          {tokenParam ? " Your verification token has been populated automatically below." : " Copy the token from the link and paste it below."}
         </p>
       </div>
 
-      <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <CheckCircle className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
-        <div className="text-sm text-teal-800">
-          <strong>Check your inbox</strong> for an email from Meditek. The link contains a token — 
-          copy just the token part from the URL (after <code>?token=</code>).
+      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 flex items-start gap-3">
+        <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+        <div className="text-sm text-foreground">
+          <strong>Check your inbox</strong> for an email from Meditek. The token will auto-populate when clicking the link, or you can paste it below.
         </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
             Verification Token *
           </label>
           <input
             {...register("token", { required: "Please enter the verification token" })}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
             placeholder="Paste your verification token here"
           />
-          {errors.token && <p className="mt-1 text-xs text-red-500">{errors.token.message}</p>}
+          {errors.token && <p className="mt-1 text-xs text-destructive">{errors.token.message}</p>}
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>
@@ -97,19 +107,27 @@ export default function VerifyEmailPage() {
       <div className="mt-6 flex items-center justify-between text-sm">
         <button
           onClick={() => router.push("/auth/register")}
-          className="text-slate-500 hover:text-slate-700 transition-colors"
+          className="text-muted-foreground hover:text-foreground transition-colors"
         >
           ← Back to Step 1
         </button>
         <button
           onClick={handleResend}
           disabled={resending}
-          className="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-medium transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 text-primary hover:opacity-80 font-medium transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${resending ? "animate-spin" : ""}`} />
           Resend email
         </button>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>}>
+      <VerifyEmailForm />
+    </Suspense>
   );
 }

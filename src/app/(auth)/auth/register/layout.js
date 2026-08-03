@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useRegistrationStore } from "@/store/meditek";
 import { HeartPulse } from "lucide-react";
 import Link from "next/link";
@@ -15,37 +15,56 @@ const WIZARD_STEPS = [
   { num: 6, label: "Provisioning" },
 ];
 
+function getStepFromPath(pathname) {
+  if (!pathname) return 1;
+  if (pathname.includes("/verify")) return 2;
+  if (pathname.includes("/documents")) return 3;
+  if (pathname.includes("/plan")) return 4;
+  if (pathname.includes("/payment")) return 5;
+  if (pathname.includes("/status")) return 6;
+  return 1;
+}
+
 export default function RegisterLayout({ children }) {
-  const { currentStep } = useRegistrationStore();
+  const pathname = usePathname();
+  const { currentStep, setCurrentStep } = useRegistrationStore();
+
+  const activeStep = getStepFromPath(pathname);
+  // Keep store in sync with active route
+  useEffect(() => {
+    if (activeStep !== currentStep) {
+      setCurrentStep(activeStep);
+    }
+  }, [activeStep, currentStep, setCurrentStep]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="hidden lg:flex flex-col w-72 bg-slate-900 text-white p-8 shrink-0">
+      <aside className="hidden lg:flex flex-col w-72 bg-primary text-primary-foreground p-8 shrink-0">
         <Link href="/" className="flex items-center gap-2 mb-12">
-          <HeartPulse className="h-8 w-8 text-teal-400" strokeWidth={2.5} />
+          <HeartPulse className="h-8 w-8 text-primary-foreground/80" strokeWidth={2.5} />
           <span className="text-2xl font-black tracking-tight">
-            Medi<span className="text-teal-400">tek</span>
+            Medi<span className="text-primary-foreground/80">tek</span>
           </span>
         </Link>
 
         <div className="mb-8">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">
+          <h2 className="text-sm font-semibold text-primary-foreground/60 uppercase tracking-wider mb-1">
             Hospital Registration
           </h2>
-          <p className="text-sm text-slate-500">Complete all steps to activate your workspace.</p>
+          <p className="text-sm text-primary-foreground/50">Complete all steps to activate your workspace.</p>
         </div>
 
         <nav className="space-y-1 flex-1">
           {WIZARD_STEPS.map((step) => {
-            const isDone = currentStep > step.num;
-            const isActive = currentStep === step.num;
+            const isDone = activeStep > step.num;
+            const isActive = activeStep === step.num;
             return (
               <div
                 key={step.num}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                   isActive
-                    ? "bg-teal-600/20 border border-teal-500/30"
+                    ? "bg-primary-foreground/20 border border-primary-foreground/30"
                     : isDone
                     ? "opacity-60"
                     : "opacity-40"
@@ -54,17 +73,17 @@ export default function RegisterLayout({ children }) {
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                     isDone
-                      ? "bg-teal-500 text-white"
+                      ? "bg-primary-foreground/60 text-primary-foreground"
                       : isActive
-                      ? "bg-teal-600 text-white"
-                      : "bg-slate-700 text-slate-400"
+                      ? "bg-primary-foreground text-primary-foreground"
+                      : "bg-primary-foreground/20 text-primary-foreground/60"
                   }`}
                 >
                   {isDone ? "✓" : step.num}
                 </div>
                 <span
                   className={`text-sm font-medium ${
-                    isActive ? "text-white" : isDone ? "text-slate-300" : "text-slate-500"
+                    isActive ? "text-primary-foreground" : isDone ? "text-primary-foreground/70" : "text-primary-foreground/50"
                   }`}
                 >
                   {step.label}
@@ -74,11 +93,11 @@ export default function RegisterLayout({ children }) {
           })}
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-slate-700 text-xs text-slate-500">
+        <div className="mt-auto pt-6 border-t border-primary-foreground/20 text-xs text-primary-foreground/50">
           <p>By registering, you agree to our</p>
-          <a href="#" className="text-teal-400 hover:underline">Terms of Service</a>
+          <a href="#" className="text-primary-foreground/80 hover:underline">Terms of Service</a>
           {" "}&amp;{" "}
-          <a href="#" className="text-teal-400 hover:underline">Privacy Policy</a>
+          <a href="#" className="text-primary-foreground/80 hover:underline">Privacy Policy</a>
         </div>
       </aside>
 
@@ -87,23 +106,23 @@ export default function RegisterLayout({ children }) {
         <div className="w-full max-w-xl">
           {/* Mobile logo */}
           <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <HeartPulse className="h-7 w-7 text-teal-600" strokeWidth={2.5} />
-            <span className="text-xl font-black tracking-tight text-slate-900">
-              Medi<span className="text-teal-600">tek</span>
+            <HeartPulse className="h-7 w-7 text-primary" strokeWidth={2.5} />
+            <span className="text-xl font-black tracking-tight text-foreground">
+              Medi<span className="text-primary">tek</span>
             </span>
           </Link>
 
           {/* Mobile step indicator */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
-            {WIZARD_STEPS.map((step, idx) => (
+            {WIZARD_STEPS.map((step) => (
               <div
                 key={step.num}
                 className={`h-1.5 flex-1 rounded-full transition-all ${
-                  currentStep > step.num
-                    ? "bg-teal-500"
-                    : currentStep === step.num
-                    ? "bg-teal-400"
-                    : "bg-slate-200"
+                  activeStep > step.num
+                    ? "bg-primary"
+                    : activeStep === step.num
+                    ? "bg-primary/70"
+                    : "bg-muted"
                 }`}
               />
             ))}

@@ -66,6 +66,7 @@ export const useRegistrationStore = create(
       setDocsUploaded: () =>
         set((state) => ({
           steps: { ...state.steps, docs_uploaded: true },
+          currentStep: 4,
         })),
 
       setSteps: (steps) => set({ steps }),
@@ -80,25 +81,36 @@ export const useRegistrationStore = create(
         set((state) => ({
           selectedPlanId: planId,
           steps: { ...state.steps, plan_selected: true },
+          currentStep: 5,
         })),
 
       setPaymentCompleted: () =>
         set((state) => ({
           steps: { ...state.steps, payment_completed: true },
-          currentStep: 7,
+          currentStep: 6,
         })),
 
       syncFromBackend: (statusData) => {
+        const steps = {
+          org_completed: statusData.steps?.org_completed ?? false,
+          email_verified: statusData.steps?.email_verified ?? false,
+          phone_verified: statusData.steps?.phone_verified ?? true,
+          docs_uploaded: statusData.steps?.docs_uploaded ?? false,
+          docs_verified: statusData.steps?.docs_verified ?? false,
+          plan_selected: statusData.steps?.plan_selected ?? false,
+          payment_completed: statusData.steps?.payment_completed ?? false,
+        };
+
+        let computedStep = 1;
+        if (steps.payment_completed) computedStep = 6;
+        else if (steps.plan_selected) computedStep = 5;
+        else if (steps.docs_uploaded) computedStep = 4;
+        else if (steps.email_verified) computedStep = 3;
+        else if (steps.org_completed) computedStep = 2;
+
         set({
-          steps: {
-            org_completed: statusData.steps?.org_completed ?? false,
-            email_verified: statusData.steps?.email_verified ?? false,
-            phone_verified: statusData.steps?.phone_verified ?? true,
-            docs_uploaded: statusData.steps?.docs_uploaded ?? false,
-            docs_verified: statusData.steps?.docs_verified ?? false,
-            plan_selected: statusData.steps?.plan_selected ?? false,
-            payment_completed: statusData.steps?.payment_completed ?? false,
-          },
+          steps,
+          currentStep: computedStep,
           docReviewStatus: statusData.doc_review_status || "pending",
           selectedPlanId: statusData.selected_plan_id || null,
         });

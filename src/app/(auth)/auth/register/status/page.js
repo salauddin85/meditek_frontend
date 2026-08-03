@@ -15,10 +15,10 @@ const STEP_LABELS = {
 };
 
 function StatusIcon({ status }) {
-  if (status === "completed") return <CheckCircle className="w-5 h-5 text-teal-500" />;
-  if (status === "failed") return <XCircle className="w-5 h-5 text-red-500" />;
-  if (status === "running") return <Loader2 className="w-5 h-5 text-teal-500 animate-spin" />;
-  return <Clock className="w-5 h-5 text-slate-300" />;
+  if (status === "completed") return <CheckCircle className="w-5 h-5 text-primary" />;
+  if (status === "failed") return <XCircle className="w-5 h-5 text-destructive" />;
+  if (status === "running") return <Loader2 className="w-5 h-5 text-primary animate-spin" />;
+  return <Clock className="w-5 h-5 text-muted-foreground" />;
 }
 
 function ProvisioningContent() {
@@ -60,18 +60,18 @@ function ProvisioningContent() {
   if (isComplete) {
     return (
       <div className="text-center">
-        <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-10 h-10 text-teal-600" />
+        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-10 h-10 text-primary" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">
+        <h2 className="text-2xl font-black text-foreground mb-2">
           Your Workspace is Ready! 🎉
         </h2>
-        <p className="text-slate-500 mb-2">
+        <p className="text-muted-foreground mb-2">
           Welcome to Meditek! Your hospital workspace has been provisioned successfully.
         </p>
         {tenantSlug && (
-          <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 mb-6">
-            <p className="text-sm text-teal-700">
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 mb-6">
+            <p className="text-sm text-foreground">
               Your workspace URL:{" "}
               <strong>{tenantSlug}.meditek.com</strong>
             </p>
@@ -79,7 +79,7 @@ function ProvisioningContent() {
         )}
         <a
           href={tenantSlug ? `http://${tenantSlug}.meditek.com` : "/"}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-all"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all"
         >
           <ExternalLink className="w-4 h-4" />
           Go to Your Workspace
@@ -104,13 +104,13 @@ function ProvisioningContent() {
   return (
     <div>
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">
+        <h2 className="text-2xl font-bold text-foreground">
           Setting Up Your Workspace
         </h2>
-        <p className="text-slate-500 mt-1">
+        <p className="text-muted-foreground mt-1">
           This usually takes 1-2 minutes. Please don&apos;t close this page.
         </p>
       </div>
@@ -123,51 +123,51 @@ function ProvisioningContent() {
               key={step}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl ${
                 status === "completed"
-                  ? "bg-teal-50"
+                  ? "bg-primary/5"
                   : status === "running"
-                  ? "bg-blue-50"
+                  ? "bg-info/10"
                   : status === "failed"
-                  ? "bg-red-50"
-                  : "bg-slate-50"
+                  ? "bg-destructive/10"
+                  : "bg-muted"
               }`}
             >
               <StatusIcon status={status} />
               <span
                 className={`text-sm font-medium ${
                   status === "completed"
-                    ? "text-teal-700"
+                    ? "text-primary"
                     : status === "running"
-                    ? "text-blue-700"
+                    ? "text-info"
                     : status === "failed"
-                    ? "text-red-700"
-                    : "text-slate-400"
+                    ? "text-destructive"
+                    : "text-muted-foreground"
                 }`}
               >
                 {STEP_LABELS[step] || step}
               </span>
               {status === "completed" && (
-                <span className="ml-auto text-xs text-teal-500 font-semibold">Done</span>
+                <span className="ml-auto text-xs text-primary font-semibold">Done</span>
               )}
               {status === "running" && (
-                <span className="ml-auto text-xs text-blue-500 font-semibold">In Progress</span>
+                <span className="ml-auto text-xs text-info font-semibold">In Progress</span>
               )}
               {status === "failed" && (
-                <span className="ml-auto text-xs text-red-500 font-semibold">Failed</span>
+                <span className="ml-auto text-xs text-destructive font-semibold">Failed</span>
               )}
             </div>
           );
         })}
       </div>
 
-      <div className="text-center text-sm text-slate-400">
+      <div className="text-center text-sm text-muted-foreground">
         Current status:{" "}
-        <span className="font-semibold text-slate-600 capitalize">
+        <span className="font-semibold text-muted-foreground capitalize">
           {tenantStatus || "checking..."}
         </span>
       </div>
 
       <div className="mt-4 text-center">
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-muted-foreground">
           You&apos;ll receive a welcome email when your workspace is ready. 
           You can safely close this page and come back later.
         </p>
@@ -180,12 +180,12 @@ export default function StatusPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900">Provisioning</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-3xl font-black text-foreground">Provisioning</h1>
+        <p className="mt-2 text-muted-foreground">
           Step 6 of 5 — Setting up your hospital workspace.
         </p>
       </div>
-      <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-8 h-8 text-teal-600 animate-spin" /></div>}>
+      <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>}>
         <ProvisioningContent />
       </Suspense>
     </div>

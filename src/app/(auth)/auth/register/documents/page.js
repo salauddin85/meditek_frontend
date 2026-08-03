@@ -74,28 +74,28 @@ function DocUploadCard({ doc, onUploaded, onDelete, uploadedDocs }) {
     <div
       className={`border-2 rounded-xl p-4 transition-all ${
         isUploaded
-          ? "border-teal-300 bg-teal-50"
-          : "border-slate-200 bg-white hover:border-teal-300"
+          ? "border-primary/30 bg-primary/5"
+          : "border-border bg-background hover:border-primary/30"
       }`}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div
             className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-              isUploaded ? "bg-teal-600" : "bg-slate-100"
+              isUploaded ? "bg-primary" : "bg-muted"
             }`}
           >
             {isUploaded ? (
-              <CheckCircle className="w-5 h-5 text-white" />
+              <CheckCircle className="w-5 h-5 text-primary-foreground" />
             ) : (
-              <FileText className="w-5 h-5 text-slate-400" />
+              <FileText className="w-5 h-5 text-muted-foreground" />
             )}
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-800">{doc.label}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{doc.desc}</p>
+            <p className="text-sm font-semibold text-foreground">{doc.label}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{doc.desc}</p>
             {isUploaded && (
-              <p className="text-xs text-teal-600 mt-1 font-medium truncate max-w-[180px]">
+              <p className="text-xs text-primary mt-1 font-medium truncate max-w-[180px]">
                 ✓ {isUploaded}
               </p>
             )}
@@ -105,7 +105,7 @@ function DocUploadCard({ doc, onUploaded, onDelete, uploadedDocs }) {
           {isUploaded ? (
             <button
               onClick={handleDelete}
-              className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
               title="Remove document"
             >
               <X className="w-4 h-4" />
@@ -114,7 +114,7 @@ function DocUploadCard({ doc, onUploaded, onDelete, uploadedDocs }) {
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors disabled:opacity-50"
             >
               {uploading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -168,8 +168,8 @@ export default function DocumentsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900">Upload Documents</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-3xl font-black text-foreground">Upload Documents</h1>
+        <p className="mt-2 text-muted-foreground">
           Step 3 of 5 — Upload your hospital&apos;s verification documents. All 4 are required.
         </p>
       </div>
@@ -195,9 +195,9 @@ export default function DocumentsPage() {
       </div>
 
       {allUploaded && (
-        <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-teal-600 shrink-0" />
-          <p className="text-sm text-teal-800">
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-4 flex items-center gap-3">
+          <CheckCircle className="w-5 h-5 text-primary shrink-0" />
+          <p className="text-sm text-foreground">
             All documents uploaded! Click Continue to select your plan.
           </p>
         </div>
@@ -206,14 +206,14 @@ export default function DocumentsPage() {
       <button
         onClick={handleContinue}
         disabled={!allUploaded}
-        className="w-full py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         Continue to Plan Selection →
       </button>
 
       <button
         onClick={() => router.push("/auth/register/verify")}
-        className="w-full mt-3 py-2.5 text-slate-500 text-sm hover:text-slate-700 transition-colors"
+        className="w-full mt-3 py-2.5 text-muted-foreground text-sm hover:text-foreground transition-colors"
       >
         ← Back
       </button>

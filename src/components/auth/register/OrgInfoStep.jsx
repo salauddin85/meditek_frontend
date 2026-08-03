@@ -85,31 +85,31 @@ export default function OrgInfoStep() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900">Register Your Organization</h1>
-        <p className="mt-2 text-slate-500">Step 1 of 5 — Tell us about your healthcare facility.</p>
+        <h1 className="text-3xl font-black text-foreground">Register Your Organization</h1>
+        <p className="mt-2 text-muted-foreground">Step 1 of 5 — Tell us about your healthcare facility.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Organization Name */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            <Building2 className="inline w-4 h-4 mr-1 text-teal-600" />
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
+            <Building2 className="inline w-4 h-4 mr-1 text-primary" />
             Organization Name *
           </label>
           <input
             {...register("name", { required: "Organization name is required" })}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background"
             placeholder="e.g. City General Hospital"
           />
-          {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+          {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
         </div>
 
         {/* Subdomain Slug */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
             Workspace Subdomain *
           </label>
-          <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500 bg-white">
+          <div className="flex items-center border border-border rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary bg-background">
             <input
               {...register("slug", {
                 required: "Subdomain is required",
@@ -121,26 +121,26 @@ export default function OrgInfoStep() {
               className="flex-1 px-4 py-2.5 text-sm focus:outline-none"
               placeholder="citycare"
             />
-            <span className="px-3 py-2.5 bg-slate-50 text-slate-400 text-sm border-l border-slate-200">
+            <span className="px-3 py-2.5 bg-muted text-muted-foreground text-sm border-l border-border">
               .meditek.com
             </span>
           </div>
           {slugValue && (
-            <p className="mt-1 text-xs text-teal-600">
+            <p className="mt-1 text-xs text-primary">
               Your workspace: <strong>{slugValue.toLowerCase()}.meditek.com</strong>
             </p>
           )}
-          {errors.slug && <p className="mt-1 text-xs text-red-500">{errors.slug.message}</p>}
+          {errors.slug && <p className="mt-1 text-xs text-destructive">{errors.slug.message}</p>}
         </div>
 
         {/* Org Type */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
             Organization Type *
           </label>
           <select
             {...register("org_type", { required: true })}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
           >
             {ORG_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -150,22 +150,22 @@ export default function OrgInfoStep() {
 
         {/* Contact Person */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            <User className="inline w-4 h-4 mr-1 text-teal-600" />
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
+            <User className="inline w-4 h-4 mr-1 text-primary" />
             Contact Person *
           </label>
           <input
             {...register("contact_person", { required: "Contact person is required" })}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             placeholder="Dr. Rafiq Hassan"
           />
-          {errors.contact_person && <p className="mt-1 text-xs text-red-500">{errors.contact_person.message}</p>}
+          {errors.contact_person && <p className="mt-1 text-xs text-destructive">{errors.contact_person.message}</p>}
         </div>
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            <Mail className="inline w-4 h-4 mr-1 text-teal-600" />
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
+            <Mail className="inline w-4 h-4 mr-1 text-primary" />
             Official Email *
           </label>
           <input
@@ -174,36 +174,36 @@ export default function OrgInfoStep() {
               pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email address" },
             })}
             type="email"
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             placeholder="admin@citycarehospital.com"
           />
-          {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+          {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
         </div>
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            <Phone className="inline w-4 h-4 mr-1 text-teal-600" />
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
+            <Phone className="inline w-4 h-4 mr-1 text-primary" />
             Phone Number *
           </label>
           <input
             {...register("phone", { required: "Phone is required" })}
-            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             placeholder="+8801XXXXXXXXX"
           />
-          {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
+          {errors.phone && <p className="mt-1 text-xs text-destructive">{errors.phone.message}</p>}
         </div>
 
         {/* Division & District */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              <MapPin className="inline w-4 h-4 mr-1 text-teal-600" />
+            <label className="block text-sm font-semibold text-foreground mb-1.5">
+              <MapPin className="inline w-4 h-4 mr-1 text-primary" />
               Division *
             </label>
             <select
               {...register("division", { required: true })}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             >
               {DIVISIONS.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -211,10 +211,10 @@ export default function OrgInfoStep() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">District *</label>
+            <label className="block text-sm font-semibold text-foreground mb-1.5">District *</label>
             <select
               {...register("district", { required: true })}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
             >
               {DISTRICTS.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -226,7 +226,7 @@ export default function OrgInfoStep() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+          className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
         >
           {isSubmitting ? (
             <>
@@ -239,9 +239,9 @@ export default function OrgInfoStep() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         Already registered?{" "}
-        <a href="/auth/login" className="text-teal-600 font-medium hover:underline">
+        <a href="/auth/login" className="text-primary font-medium hover:underline">
           Sign in
         </a>
       </p>

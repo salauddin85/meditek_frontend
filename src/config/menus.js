@@ -29,14 +29,6 @@ export const menusConfig = {
             title: "Overview",
             href: "/dashboard",
           },
-          {
-            title: "Analytics",
-            href: "/dashboard/analytics",
-          },
-          {
-            title: "E-Commerce",
-            href: "/dashboard/ecommerce",
-          },
         ],
       },
     ],

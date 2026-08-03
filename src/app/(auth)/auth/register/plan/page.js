@@ -21,13 +21,13 @@ function PlanCard({ plan, selected, onSelect }) {
       onClick={() => onSelect(plan)}
       className={`relative cursor-pointer border-2 rounded-2xl p-6 transition-all ${
         selected
-          ? "border-teal-500 bg-teal-50 shadow-lg shadow-teal-100"
-          : "border-slate-200 bg-white hover:border-teal-300 hover:shadow-md"
+          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+          : "border-border bg-background hover:border-primary hover:shadow-md"
       }`}
     >
       {isHospital && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="bg-gradient-to-r from-teal-600 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+          <span className="bg-gradient-to-r from-primary to-cyan-500 text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
             Most Popular
           </span>
         </div>
@@ -36,67 +36,67 @@ function PlanCard({ plan, selected, onSelect }) {
       <div className="flex items-start justify-between mb-4">
         <div
           className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-            selected ? "bg-teal-600" : "bg-slate-100"
+            selected ? "bg-primary" : "bg-muted"
           }`}
         >
-          <Icon className={`w-6 h-6 ${selected ? "text-white" : "text-slate-500"}`} />
+          <Icon className={`w-6 h-6 ${selected ? "text-primary-foreground" : "text-muted-foreground"}`} />
         </div>
         {selected && (
-          <div className="w-6 h-6 bg-teal-600 rounded-full flex items-center justify-center shrink-0">
-            <Check className="w-3.5 h-3.5 text-white" />
+          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shrink-0">
+            <Check className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
         )}
       </div>
 
-      <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
-      <p className="text-sm text-slate-500 mt-1 mb-4">{plan.description}</p>
+      <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
+      <p className="text-sm text-muted-foreground mt-1 mb-4">{plan.description}</p>
 
       <div className="mb-4">
-        <span className="text-3xl font-black text-slate-900">
+        <span className="text-3xl font-black text-foreground">
           ৳{Number(plan.price_monthly).toLocaleString()}
         </span>
-        <span className="text-sm text-slate-400">/month</span>
+        <span className="text-sm text-muted-foreground">/month</span>
         {plan.price_yearly && (
-          <div className="text-xs text-teal-600 mt-0.5">
+          <div className="text-xs text-primary mt-0.5">
             ৳{Number(plan.price_yearly).toLocaleString()}/year (save 17%)
           </div>
         )}
       </div>
 
-      <ul className="space-y-1.5 text-sm text-slate-600">
+      <ul className="space-y-1.5 text-sm text-muted-foreground">
         <li className="flex items-center gap-2">
-          <Check className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+          <Check className="w-3.5 h-3.5 text-primary shrink-0" />
           Up to {plan.max_branches} branch{plan.max_branches > 1 ? "es" : ""}
         </li>
         <li className="flex items-center gap-2">
-          <Check className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+          <Check className="w-3.5 h-3.5 text-primary shrink-0" />
           {plan.max_doctors} doctors
         </li>
         <li className="flex items-center gap-2">
-          <Check className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+          <Check className="w-3.5 h-3.5 text-primary shrink-0" />
           {Number(plan.max_active_patients).toLocaleString()} patients
         </li>
         {plan.feature_laboratory && (
           <li className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+            <Check className="w-3.5 h-3.5 text-primary shrink-0" />
             Laboratory module
           </li>
         )}
         {plan.feature_pharmacy && (
           <li className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+            <Check className="w-3.5 h-3.5 text-primary shrink-0" />
             Pharmacy module
           </li>
         )}
         {plan.feature_radiology && (
           <li className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+            <Check className="w-3.5 h-3.5 text-primary shrink-0" />
             Radiology module
           </li>
         )}
         {plan.feature_ipd && (
           <li className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+            <Check className="w-3.5 h-3.5 text-primary shrink-0" />
             IPD / Inpatient module
           </li>
         )}
@@ -148,7 +148,7 @@ export default function PlanPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -156,8 +156,8 @@ export default function PlanPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900">Choose Your Plan</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-3xl font-black text-foreground">Choose Your Plan</h1>
+        <p className="mt-2 text-muted-foreground">
           Step 4 of 5 — Select the plan that fits your facility size and needs.
         </p>
       </div>
@@ -168,8 +168,8 @@ export default function PlanPage() {
           onClick={() => setBillingCycle("monthly")}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
             billingCycle === "monthly"
-              ? "bg-teal-600 text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground hover:bg-accent"
           }`}
         >
           Monthly
@@ -178,8 +178,8 @@ export default function PlanPage() {
           onClick={() => setBillingCycle("yearly")}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
             billingCycle === "yearly"
-              ? "bg-teal-600 text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground hover:bg-accent"
           }`}
         >
           Yearly
@@ -201,12 +201,12 @@ export default function PlanPage() {
       </div>
 
       {selectedPlan && (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+        <div className="bg-muted border border-border rounded-xl p-4 mb-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-600">
+            <span className="text-muted-foreground">
               {selectedPlan.name} ({billingCycle})
             </span>
-            <span className="font-bold text-slate-900">
+            <span className="font-bold text-foreground">
               ৳
               {billingCycle === "yearly" && selectedPlan.price_yearly
                 ? Number(selectedPlan.price_yearly).toLocaleString()
@@ -214,17 +214,17 @@ export default function PlanPage() {
             </span>
           </div>
           <div className="flex items-center justify-between text-sm mt-1">
-            <span className="text-slate-500">VAT (15%)</span>
-            <span className="text-slate-600">
+            <span className="text-muted-foreground">VAT (15%)</span>
+            <span className="text-muted-foreground">
               ৳
               {billingCycle === "yearly" && selectedPlan.price_yearly
                 ? (Number(selectedPlan.price_yearly) * 0.15).toFixed(2)
                 : (Number(selectedPlan.price_monthly) * 0.15).toFixed(2)}
             </span>
           </div>
-          <div className="border-t border-slate-200 mt-2 pt-2 flex items-center justify-between">
-            <span className="font-semibold text-slate-700">Total</span>
-            <span className="font-black text-slate-900 text-lg">
+          <div className="border-t border-border mt-2 pt-2 flex items-center justify-between">
+            <span className="font-semibold text-foreground">Total</span>
+            <span className="font-black text-foreground text-lg">
               ৳
               {billingCycle === "yearly" && selectedPlan.price_yearly
                 ? (Number(selectedPlan.price_yearly) * 1.15).toFixed(2)
@@ -237,7 +237,7 @@ export default function PlanPage() {
       <button
         onClick={handleContinue}
         disabled={!selectedPlan || submitting}
-        className="w-full py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {submitting ? (
           <>
@@ -251,7 +251,7 @@ export default function PlanPage() {
 
       <button
         onClick={() => router.push("/auth/register/documents")}
-        className="w-full mt-3 py-2.5 text-slate-500 text-sm hover:text-slate-700 transition-colors"
+        className="w-full mt-3 py-2.5 text-muted-foreground text-sm hover:text-foreground transition-colors"
       >
         ← Back
       </button>
