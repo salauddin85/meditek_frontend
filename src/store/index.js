@@ -44,3 +44,4 @@ export const useSidebar = create((set) => ({
   mobileMenu: false,
   setMobileMenu: (value) => set({ mobileMenu: value }),
 }));
+export { useTenantAuthStore } from "./tenant-auth";

@@ -56,6 +56,7 @@ export default function OrgInfoStep() {
         phone: data.phone,
         district: data.district,
         division: data.division,
+        password: data.password,
       });
       const { registration_id, tenant_id, access_token, slug } = res.data.data;
       setInitiation({ registration_id, tenant_id, access_token, slug });
@@ -194,6 +195,23 @@ export default function OrgInfoStep() {
           {errors.phone && <p className="mt-1 text-xs text-destructive">{errors.phone.message}</p>}
         </div>
 
+        {/* Initial Admin Password */}
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
+            Admin Password *
+          </label>
+          <input
+            {...register("password", {
+              required: "Password is required",
+              minLength: { value: 6, message: "Password must be at least 6 characters" },
+            })}
+            type="password"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+            placeholder="Create an admin password"
+          />
+          {errors.password && <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>}
+        </div>
+
         {/* Division & District */}
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -241,7 +259,7 @@ export default function OrgInfoStep() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already registered?{" "}
-        <a href="/auth/login" className="text-primary font-medium hover:underline">
+        <a href="/auth/tenant-login" className="text-primary font-medium hover:underline">
           Sign in
         </a>
       </p>

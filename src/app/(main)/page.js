@@ -204,7 +204,7 @@ function Header() {
         {/* Desktop CTA */}
         <div className="hidden lg:flex lg:items-center lg:gap-x-4">
           <Link
-            href="/auth/login"
+            href="/auth/tenant-login"
             className="text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors px-4 py-2"
           >
             Sign In
@@ -246,7 +246,7 @@ function Header() {
               ))}
               <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
                 <Link
-                  href="/auth/login"
+                  href="/auth/tenant-login"
                   className="text-center text-sm font-semibold text-slate-700 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50"
                 >
                   Sign In

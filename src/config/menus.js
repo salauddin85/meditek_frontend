@@ -1,4 +1,4 @@
-import { DashBoard } from "@/components/svg";
+import { DashBoard, Settings } from "@/components/svg";
 
 export const menusConfig = {
   mainNav: [
@@ -15,19 +15,66 @@ export const menusConfig = {
         icon: DashBoard,
         href: "/dashboard",
       },
+      {
+        title: "Settings",
+        icon: Settings,
+        child: [
+          {
+            title: "Team Members",
+            href: "/dashboard/settings/team",
+          },
+          {
+            title: "Roles & Permissions",
+            href: "/dashboard/settings/roles",
+          },
+          {
+            title: "Security",
+            href: "/dashboard/settings/security",
+          },
+          {
+            title: "Audit Logs",
+            href: "/dashboard/settings/audit",
+          },
+          {
+            title: "My Profile",
+            href: "/dashboard/settings/profile",
+          },
+        ],
+      },
     ],
     classic: [
       {
         isHeader: true,
-        title: "menu",
+        title: "Main Menu",
       },
       {
         title: "Dashboard",
         icon: DashBoard,
+        href: "/dashboard",
+      },
+      {
+        title: "IAM Settings",
+        icon: Settings,
         child: [
           {
-            title: "Overview",
-            href: "/platform/dashboard",
+            title: "Team Members",
+            href: "/dashboard/settings/team",
+          },
+          {
+            title: "Roles & Permissions",
+            href: "/dashboard/settings/roles",
+          },
+          {
+            title: "Security",
+            href: "/dashboard/settings/security",
+          },
+          {
+            title: "Audit Logs",
+            href: "/dashboard/settings/audit",
+          },
+          {
+            title: "My Profile",
+            href: "/dashboard/settings/profile",
           },
         ],
       },
