@@ -463,7 +463,9 @@ const MobileSidebar = ({ collapsed, trans }) => {
   const { sidebarBg, mobileMenu, setMobileMenu } = useSidebar();
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [activeMultiMenu, setMultiMenu] = useState(null);
-  const menus = menusConfig?.sidebarNav?.classic || [];
+  const pathname = usePathname();
+  const menuSet = pathname?.startsWith("/platform") ? menusConfig.platform : menusConfig.tenant;
+  const menus = menuSet?.sidebarNav?.classic || [];
   const { isRtl } = useThemeStore();
 
   const toggleSubmenu = (i) => {
@@ -584,7 +586,9 @@ const MobileSidebar = ({ collapsed, trans }) => {
 const Sidebar = ({ trans }) => {
   const { collapsed, sidebarBg } = useSidebar();
   const { isRtl } = useThemeStore();
-  const menus = menusConfig?.sidebarNav?.classic || [];
+  const pathname = usePathname();
+  const menuSet = pathname?.startsWith("/platform") ? menusConfig.platform : menusConfig.tenant;
+  const menus = menuSet?.sidebarNav?.classic || [];
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [activeMultiMenu, setMultiMenu] = useState(null);
   const isDesktop = useMediaQuery("(min-width: 1280px)");
@@ -605,7 +609,6 @@ const Sidebar = ({ trans }) => {
     }
   };
 
-  const pathname = usePathname();
   const locationName = getDynamicPath(pathname);
 
   React.useEffect(() => {

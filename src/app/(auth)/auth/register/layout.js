@@ -30,7 +30,6 @@ export default function RegisterLayout({ children }) {
   const { currentStep, setCurrentStep } = useRegistrationStore();
 
   const activeStep = getStepFromPath(pathname);
-  // Keep store in sync with active route
   useEffect(() => {
     if (activeStep !== currentStep) {
       setCurrentStep(activeStep);
@@ -38,99 +37,72 @@ export default function RegisterLayout({ children }) {
   }, [activeStep, currentStep, setCurrentStep]);
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="hidden lg:flex flex-col w-72 bg-primary text-primary-foreground p-8 shrink-0">
-        <Link href="/" className="flex items-center gap-2 mb-12">
-          <HeartPulse className="h-8 w-8 text-primary-foreground/80" strokeWidth={2.5} />
-          <span className="text-2xl font-black tracking-tight">
-            Medi<span className="text-primary-foreground/80">tek</span>
-          </span>
-        </Link>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(0,166,126,0.10),_transparent_45%),linear-gradient(135deg,_#f8fffc_0%,_#f5fcf8_100%)] dark:bg-slate-950 flex items-center justify-center p-4 lg:p-8">
+      <div className="w-full max-w-6xl overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/95 shadow-[0_24px_80px_rgba(0,0,0,0.10)] dark:border-slate-800 dark:bg-slate-900/95">
+        <div className="flex flex-col lg:flex-row">
+          <aside className="w-full lg:w-[320px] bg-[#00A67E] p-8 text-white lg:min-h-[720px]">
+            <Link href="/" className="flex items-center gap-3 mb-10">
+              <HeartPulse className="h-8 w-8" strokeWidth={2.5} />
+              <span className="text-2xl font-black tracking-tight">Medi<span className="text-white/80">tek</span></span>
+            </Link>
 
-        <div className="mb-8">
-          <h2 className="text-sm font-semibold text-primary-foreground/60 uppercase tracking-wider mb-1">
-            Hospital Registration
-          </h2>
-          <p className="text-sm text-primary-foreground/50">Complete all steps to activate your workspace.</p>
-        </div>
+            <div className="mb-8">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-white/70 mb-2">Hospital Registration</h2>
+              <p className="text-sm text-white/85">Complete each step to activate your secure workspace.</p>
+            </div>
 
-        <nav className="space-y-1 flex-1">
-          {WIZARD_STEPS.map((step) => {
-            const isDone = activeStep > step.num;
-            const isActive = activeStep === step.num;
-            return (
-              <div
-                key={step.num}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive
-                    ? "bg-primary-foreground/20 border border-primary-foreground/30"
-                    : isDone
-                    ? "opacity-60"
-                    : "opacity-40"
-                }`}
-              >
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                    isDone
-                      ? "bg-primary-foreground/60 text-primary-foreground"
-                      : isActive
-                      ? "bg-primary-foreground text-primary-foreground"
-                      : "bg-primary-foreground/20 text-primary-foreground/60"
-                  }`}
-                >
-                  {isDone ? "✓" : step.num}
-                </div>
-                <span
-                  className={`text-sm font-medium ${
-                    isActive ? "text-primary-foreground" : isDone ? "text-primary-foreground/70" : "text-primary-foreground/50"
-                  }`}
-                >
-                  {step.label}
-                </span>
+            <nav className="space-y-2">
+              {WIZARD_STEPS.map((step) => {
+                const isDone = activeStep > step.num;
+                const isActive = activeStep === step.num;
+                return (
+                  <div
+                    key={step.num}
+                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
+                      isActive
+                        ? "border-white/40 bg-white/20"
+                        : isDone
+                        ? "border-white/20 bg-white/10"
+                        : "border-white/10 bg-white/5"
+                    }`}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${isDone ? "bg-white text-[#00A67E]" : isActive ? "bg-white/95 text-[#00A67E]" : "bg-white/15 text-white/80"}`}>
+                      {isDone ? "✓" : step.num}
+                    </div>
+                    <span className={`text-sm font-medium ${isActive ? "text-white" : "text-white/80"}`}>{step.label}</span>
+                  </div>
+                );
+              })}
+            </nav>
+
+            <div className="mt-10 rounded-2xl border border-white/20 bg-white/10 p-4 text-sm text-white/80">
+              <p>By registering, you agree to our</p>
+              <a href="#" className="font-medium text-white hover:underline">Terms of Service</a>
+              {" "}&amp;{" "}
+              <a href="#" className="font-medium text-white hover:underline">Privacy Policy</a>
+            </div>
+          </aside>
+
+          <main className="flex-1 p-6 lg:p-10">
+            <div className="mx-auto flex max-w-2xl flex-col">
+              <Link href="/" className="mb-6 flex items-center gap-2 lg:hidden">
+                <HeartPulse className="h-7 w-7 text-[#00A67E]" strokeWidth={2.5} />
+                <span className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">Medi<span className="text-[#00A67E]">tek</span></span>
+              </Link>
+
+              <div className="mb-6 flex items-center gap-2 lg:hidden">
+                {WIZARD_STEPS.map((step) => (
+                  <div key={step.num} className={`h-1.5 flex-1 rounded-full ${activeStep > step.num ? "bg-[#00A67E]" : activeStep === step.num ? "bg-[#00A67E]/70" : "bg-slate-200 dark:bg-slate-700"}`} />
+                ))}
               </div>
-            );
-          })}
-        </nav>
 
-        <div className="mt-auto pt-6 border-t border-primary-foreground/20 text-xs text-primary-foreground/50">
-          <p>By registering, you agree to our</p>
-          <a href="#" className="text-primary-foreground/80 hover:underline">Terms of Service</a>
-          {" "}&amp;{" "}
-          <a href="#" className="text-primary-foreground/80 hover:underline">Privacy Policy</a>
+              <div className="rounded-[24px] border border-slate-200/80 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 lg:p-8">
+                {children}
+              </div>
+            </div>
+          </main>
         </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
-        <div className="w-full max-w-xl">
-          {/* Mobile logo */}
-          <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <HeartPulse className="h-7 w-7 text-primary" strokeWidth={2.5} />
-            <span className="text-xl font-black tracking-tight text-foreground">
-              Medi<span className="text-primary">tek</span>
-            </span>
-          </Link>
-
-          {/* Mobile step indicator */}
-          <div className="flex items-center gap-2 mb-6 lg:hidden">
-            {WIZARD_STEPS.map((step) => (
-              <div
-                key={step.num}
-                className={`h-1.5 flex-1 rounded-full transition-all ${
-                  activeStep > step.num
-                    ? "bg-primary"
-                    : activeStep === step.num
-                    ? "bg-primary/70"
-                    : "bg-muted"
-                }`}
-              />
-            ))}
-          </div>
-
-          {children}
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

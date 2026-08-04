@@ -261,7 +261,7 @@ function TenantDetailModal({ tenantId, onClose }) {
 
 export default function PlatformDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = usePlatformAuthStore();
+  const { user, isAuthenticated, logout, hasHydrated } = usePlatformAuthStore();
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -271,10 +271,11 @@ export default function PlatformDashboard() {
   const [selectedTenantId, setSelectedTenantId] = useState(null);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!isAuthenticated) {
-      router.push("/auth/platform-login");
+      router.replace("/auth/platform-login");
     }
-  }, [isAuthenticated, router]);
+  }, [hasHydrated, isAuthenticated, router]);
 
   const fetchTenants = useCallback(async () => {
     setLoading(true);
@@ -306,7 +307,7 @@ export default function PlatformDashboard() {
     router.push("/auth/platform-login");
   };
 
-  if (!isAuthenticated) return null;
+  if (!hasHydrated || !isAuthenticated) return null;
 
   const statusOptions = [
     "pending_verification", "pending_payment", "provisioning",

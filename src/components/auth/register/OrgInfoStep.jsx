@@ -86,20 +86,20 @@ export default function OrgInfoStep() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-foreground">Register Your Organization</h1>
-        <p className="mt-2 text-muted-foreground">Step 1 of 5 — Tell us about your healthcare facility.</p>
+        <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">Register Your Organization</h1>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Step 1 of 5 — Tell us about your healthcare facility.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Organization Name */}
         <div>
-          <label className="block text-sm font-semibold text-foreground mb-1.5">
-            <Building2 className="inline w-4 h-4 mr-1 text-primary" />
+          <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
+            <Building2 className="inline w-4 h-4 mr-1 text-[#00A67E]" />
             Organization Name *
           </label>
           <input
             {...register("name", { required: "Organization name is required" })}
-            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00A67E]/30 focus:border-[#00A67E] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             placeholder="e.g. City General Hospital"
           />
           {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
@@ -215,13 +215,13 @@ export default function OrgInfoStep() {
         {/* Division & District */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-1.5">
-              <MapPin className="inline w-4 h-4 mr-1 text-primary" />
+            <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
+              <MapPin className="inline w-4 h-4 mr-1 text-[#00A67E]" />
               Division *
             </label>
             <select
               {...register("division", { required: true })}
-              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00A67E]/30 focus:border-[#00A67E] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             >
               {DIVISIONS.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -229,10 +229,10 @@ export default function OrgInfoStep() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-1.5">District *</label>
+            <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5">District *</label>
             <select
               {...register("district", { required: true })}
-              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00A67E]/30 focus:border-[#00A67E] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             >
               {DISTRICTS.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -244,7 +244,7 @@ export default function OrgInfoStep() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+          className="w-full py-3 rounded-xl bg-[#00A67E] font-semibold text-white shadow-[0_6px_20px_rgba(0,166,126,0.25)] transition-all hover:bg-[#008A6A] disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
         >
           {isSubmitting ? (
             <>
@@ -257,9 +257,9 @@ export default function OrgInfoStep() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
         Already registered?{" "}
-        <a href="/auth/tenant-login" className="text-primary font-medium hover:underline">
+        <a href="/auth/tenant-login" className="font-semibold text-[#00A67E] hover:text-[#008A6A] hover:underline">
           Sign in
         </a>
       </p>

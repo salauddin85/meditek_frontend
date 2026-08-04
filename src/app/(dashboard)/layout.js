@@ -1,4 +1,4 @@
-import DashboardLayoutProvider from "@/components/dashboard/dashboard-layout-provider";
+import DashboardLayoutShell from "@/components/dashboard/dashboard-layout-shell";
 import "./dashboard.css";
 
 export const metadata = {
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function DashboardLayout({ children }) {
-  return <DashboardLayoutProvider>{children}</DashboardLayoutProvider>;
+  return <DashboardLayoutShell>{children}</DashboardLayoutShell>;
 }

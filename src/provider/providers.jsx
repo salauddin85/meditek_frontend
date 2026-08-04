@@ -9,6 +9,7 @@ import { SonnToaster } from "@/components/ui/sonner";
 import ThemeCustomize from "@/components/dashboard/customizer/theme-customizer";
 import { useMounted } from "@/hooks/use-mounted";
 import { themes } from "@/config/themes";
+import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -72,6 +73,9 @@ const ThemeWrapper = ({ children }) => {
 };
 
 const Providers = ({ children }) => {
+  const pathname = usePathname();
+  const showCustomizer = pathname?.startsWith("/dashboard") || pathname?.startsWith("/platform");
+
   return (
     <ThemeProvider attribute="class" enableSystem={false} defaultTheme="light">
       <ThemeWrapper>
@@ -81,7 +85,7 @@ const Providers = ({ children }) => {
         </div>
         <Toaster />
         <SonnToaster />
-        <ThemeCustomize />
+        {showCustomizer ? <ThemeCustomize /> : null}
       </ThemeWrapper>
     </ThemeProvider>
   );

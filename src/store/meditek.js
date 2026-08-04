@@ -167,6 +167,7 @@ export const usePlatformAuthStore = create(
       user: null,
       token: null,
       isAuthenticated: false,
+      hasHydrated: false,
 
       login: ({ user, access }) => {
         if (typeof window !== "undefined") {
@@ -181,10 +182,15 @@ export const usePlatformAuthStore = create(
         }
         set({ user: null, token: null, isAuthenticated: false });
       },
+
+      setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
       name: "meditek-platform-auth",
       partialize: (state) => ({ user: state.user, token: state.token, isAuthenticated: state.isAuthenticated }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated?.(true);
+      },
     }
   )
 );
