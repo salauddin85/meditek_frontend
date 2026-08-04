@@ -29,7 +29,7 @@ import apiClient from "@/lib/api-client";
 const STATUS_STYLES = {
   pending_verification: "bg-default-100 text-default-600",
   pending_payment:      "bg-warning/10 text-warning",
-  provisioning:         "bg-info/10 text-info",
+  provisioning:         "bg-info/10 text-light-foreground",
   trial:                "bg-secondary/20 text-secondary-foreground",
   active:               "bg-success/10 text-success",
   grace:                "bg-warning/20 text-warning",

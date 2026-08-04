@@ -13,11 +13,14 @@ const apiClient = axios.create({
 // Request interceptor to attach auth tokens
 apiClient.interceptors.request.use(
   (config) => {
-    // Attach platform admin token if available
     if (typeof window !== "undefined") {
       const platformToken = localStorage.getItem("platform_token");
       const registrationToken = localStorage.getItem("registration_token");
-      if (platformToken) {
+      const isRegistrationRoute = config?.url?.includes("/public/register/");
+
+      if (isRegistrationRoute && registrationToken) {
+        config.headers["Authorization"] = `Bearer ${registrationToken}`;
+      } else if (platformToken) {
         config.headers["Authorization"] = `Bearer ${platformToken}`;
       } else if (registrationToken) {
         config.headers["Authorization"] = `Bearer ${registrationToken}`;

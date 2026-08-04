@@ -27,7 +27,7 @@ export const menusConfig = {
         child: [
           {
             title: "Overview",
-            href: "/dashboard",
+            href: "/platform/dashboard",
           },
         ],
       },
