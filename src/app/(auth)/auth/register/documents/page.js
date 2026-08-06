@@ -206,14 +206,14 @@ export default function DocumentsPage() {
       <button
         onClick={handleContinue}
         disabled={!allUploaded}
-        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         Continue to Plan Selection →
       </button>
 
       <button
         onClick={() => router.push("/auth/register/verify")}
-        className="w-full mt-3 py-2.5 text-muted-foreground text-sm hover:text-foreground transition-colors"
+        className="w-full mt-3 py-2.5 text-muted-foreground text-sm hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
         ← Back
       </button>

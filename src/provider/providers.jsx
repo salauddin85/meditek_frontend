@@ -10,6 +10,19 @@ import ThemeCustomize from "@/components/dashboard/customizer/theme-customizer";
 import { useMounted } from "@/hooks/use-mounted";
 import { themes } from "@/config/themes";
 import { usePathname } from "next/navigation";
+import { BRAND_THEME_VARS, BRAND_THEME_NAME, BRAND_RADIUS } from "@/config/brand-theme";
+
+const isPublicRoute = (pathname) => {
+  if (!pathname) return false;
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin_dashboard") ||
+    pathname.startsWith("/platform")
+  ) {
+    return false;
+  }
+  return true;
+};
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,15 +42,22 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 }
 
 const ThemeWrapper = ({ children }) => {
-  const { theme, radius } = useThemeStore();
+  const pathname = usePathname();
+  const isPublic = isPublicRoute(pathname);
+
+  const { theme: storeTheme, radius: storeRadius } = useThemeStore();
   const { resolvedTheme: mode } = useTheme();
   const mounted = useMounted();
 
-  const activeTheme = themes.find((t) => t.name === theme);
-  const themeVars =
-    mounted && activeTheme
-      ? activeTheme?.cssVars[mode === "dark" ? "dark" : "light"]
-      : {};
+  const themeName = isPublic ? BRAND_THEME_NAME : storeTheme;
+  const radius = isPublic ? BRAND_RADIUS : storeRadius;
+
+  const activeTheme = themes.find((t) => t.name === storeTheme);
+  const themeVars = isPublic
+    ? BRAND_THEME_VARS[mode === "dark" ? "dark" : "light"]
+    : (mounted && activeTheme
+        ? activeTheme?.cssVars[mode === "dark" ? "dark" : "light"]
+        : {});
 
   // Create a mapping of theme variables to CSS custom properties
   const styleVariables = mounted
@@ -63,7 +83,7 @@ const ThemeWrapper = ({ children }) => {
       className={cn(
         "dash-tail-app flex-1 flex flex-col ",
         inter.className,
-        mounted ? "theme-" + theme : ""
+        mounted ? "theme-" + themeName : ""
       )}
       style={styleVariables}
     >
@@ -74,7 +94,10 @@ const ThemeWrapper = ({ children }) => {
 
 const Providers = ({ children }) => {
   const pathname = usePathname();
-  const showCustomizer = pathname?.startsWith("/dashboard") || pathname?.startsWith("/platform");
+  const showCustomizer =
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/platform") ||
+    pathname?.startsWith("/admin_dashboard");
 
   return (
     <ThemeProvider attribute="class" enableSystem={false} defaultTheme="light">

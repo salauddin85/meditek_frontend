@@ -142,16 +142,10 @@ const LoginPage = () => {
                       }}
                       modules={[Autoplay, Pagination, Navigation]}
                       style={{
-                        "--swiper-pagination-color": `hsl(${
-                          theme?.cssVars[mode === "dark" ? "dark" : "light"]
-                            .primary
-                        })`,
+                        "--swiper-pagination-color": "var(--primary)",
                         "--swiper-pagination-bottom": "0px",
                         "--swiper-pagination-bullet-size": "12px",
-                        "--swiper-pagination-bullet-inactive-color": `hsl(${
-                          theme?.cssVars[mode === "dark" ? "dark" : "light"]
-                            .primary
-                        })`,
+                        "--swiper-pagination-bullet-inactive-color": "var(--primary)",
                         "--swiper-pagination-bullet-inactive-opacity": 0.5,
                       }}
                       className="w-full h-full rounded-2xl "

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Loader2, Building2, User, Mail, Phone, MapPin } from "lucide-react";
+import { Loader2, Building2, User, Mail, Phone, MapPin, Eye, EyeOff } from "lucide-react";
 import { useRegistrationStore } from "@/store/meditek";
 import apiClient from "@/lib/api-client";
 
@@ -27,6 +27,7 @@ export default function OrgInfoStep() {
   const router = useRouter();
   const { setInitiation, setOrgInfo } = useRegistrationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -200,15 +201,25 @@ export default function OrgInfoStep() {
           <label className="block text-sm font-semibold text-foreground mb-1.5">
             Admin Password *
           </label>
-          <input
-            {...register("password", {
-              required: "Password is required",
-              minLength: { value: 6, message: "Password must be at least 6 characters" },
-            })}
-            type="password"
-            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-            placeholder="Create an admin password"
-          />
+          <div className="relative">
+            <input
+              {...register("password", {
+                required: "Password is required",
+                minLength: { value: 6, message: "Password must be at least 6 characters" },
+              })}
+              type={showPassword ? "text" : "password"}
+              className="w-full px-4 py-2.5 pr-12 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              placeholder="Create an admin password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {errors.password && <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>}
         </div>
 
@@ -244,7 +255,7 @@ export default function OrgInfoStep() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 rounded-xl bg-[#00A67E] font-semibold text-white shadow-[0_6px_20px_rgba(0,166,126,0.25)] transition-all hover:bg-[#008A6A] disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+          className="w-full py-3 rounded-xl bg-primary font-semibold text-primary-foreground shadow-[0_6px_20px_rgba(0,166,126,0.25)] transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
         >
           {isSubmitting ? (
             <>

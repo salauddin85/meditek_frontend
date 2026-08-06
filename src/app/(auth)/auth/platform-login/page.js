@@ -25,7 +25,7 @@ export default function PlatformLoginPage() {
       const { access, user } = res.data.data;
       login({ user, access });
       toast.success(`Welcome back, ${user.full_name}!`);
-      router.push("/platform/dashboard");
+      router.push("/admin_dashboard");
     } catch (err) {
       toast.error(err?.response?.data?.message || "Invalid credentials.");
     } finally {

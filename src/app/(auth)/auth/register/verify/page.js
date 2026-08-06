@@ -91,7 +91,7 @@ function VerifyEmailForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>
@@ -107,14 +107,14 @@ function VerifyEmailForm() {
       <div className="mt-6 flex items-center justify-between text-sm">
         <button
           onClick={() => router.push("/auth/register")}
-          className="text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-primary transition-colors"
         >
           ← Back to Step 1
         </button>
         <button
           onClick={handleResend}
           disabled={resending}
-          className="flex items-center gap-1.5 text-primary hover:opacity-80 font-medium transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 text-primary hover:text-primary/80 font-semibold transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <RefreshCw className={`w-4 h-4 ${resending ? "animate-spin" : ""}`} />
           Resend email

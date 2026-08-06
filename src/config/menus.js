@@ -82,37 +82,7 @@ export const tenantMenusConfig = {
   },
 };
 
-export const platformMenusConfig = {
-  mainNav: [
-    {
-      title: "Platform Dashboard",
-      icon: DashBoard,
-      href: "/platform/dashboard",
-    },
-  ],
-  sidebarNav: {
-    modern: [
-      {
-        title: "Platform Dashboard",
-        icon: DashBoard,
-        href: "/platform/dashboard",
-      },
-    ],
-    classic: [
-      {
-        isHeader: true,
-        title: "Platform",
-      },
-      {
-        title: "Overview",
-        icon: DashBoard,
-        href: "/platform/dashboard",
-      },
-    ],
-  },
-};
 
 export const menusConfig = {
   tenant: tenantMenusConfig,
-  platform: platformMenusConfig,
 };

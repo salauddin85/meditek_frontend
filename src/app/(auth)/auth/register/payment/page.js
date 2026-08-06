@@ -37,7 +37,7 @@ function PaymentContent() {
         </p>
         <button
           onClick={() => router.push("/auth/register/plan")}
-          className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all"
+          className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all"
         >
           Try Again
         </button>
@@ -53,7 +53,7 @@ function PaymentContent() {
         You will be redirected to the payment gateway. If nothing happens,{" "}
         <button
           onClick={() => router.push("/auth/register/plan")}
-          className="text-primary hover:underline"
+          className="text-primary hover:text-primary/80 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           go back to plan selection
         </button>

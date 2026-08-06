@@ -79,7 +79,7 @@ function ProvisioningContent() {
         )}
         <a
           href={tenantSlug ? `http://${tenantSlug}.meditek.com` : "/"}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-all"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all"
         >
           <ExternalLink className="w-4 h-4" />
           Go to Your Workspace
