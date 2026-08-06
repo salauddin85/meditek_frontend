@@ -115,6 +115,7 @@ export const iamApi = {
   // Roles
   getRoles: () => tenantApi.get("/roles/"),
   createRole: (data) => tenantApi.post("/roles/", data),
+  deleteRole: (roleId) => tenantApi.delete(`/roles/${roleId}/`),
   updateRolePermissions: (roleId, data) => tenantApi.patch(`/roles/${roleId}/permissions/`, data),
 
   // Permissions
