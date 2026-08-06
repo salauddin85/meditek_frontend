@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Icon } from "@iconify/react";
 import {
   CreditCard,
@@ -70,7 +71,8 @@ const QuotaMeter = ({ label, used, limit, unlimited, unit = "" }) => {
   );
 };
 
-export default function BillingOverviewPage() {
+function BillingOverviewContent() {
+  const searchParams = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
@@ -93,7 +95,28 @@ export default function BillingOverviewPage() {
 
   useEffect(() => {
     fetchSubscription();
-  }, []);
+
+    if (searchParams) {
+      const status = searchParams.get("status");
+      const invoiceNumber = searchParams.get("invoice_number");
+
+      if (status === "success") {
+        toast.success(
+          invoiceNumber
+            ? `Payment successful! Invoice ${invoiceNumber} paid and subscription plan updated.`
+            : "Payment successful! Your subscription plan has been upgraded.",
+          { duration: 6000 }
+        );
+        window.history.replaceState({}, "", "/dashboard/settings/billing");
+      } else if (status === "fail") {
+        toast.error("Payment failed. Please try again or choose a different payment method.", { duration: 6000 });
+        window.history.replaceState({}, "", "/dashboard/settings/billing");
+      } else if (status === "cancel") {
+        toast.error("Payment process was cancelled.", { duration: 5000 });
+        window.history.replaceState({}, "", "/dashboard/settings/billing");
+      }
+    }
+  }, [searchParams]);
 
   const handleCancelSubscription = async () => {
     setCancelling(true);
@@ -332,5 +355,19 @@ export default function BillingOverviewPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function BillingOverviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <BillingOverviewContent />
+    </Suspense>
   );
 }
