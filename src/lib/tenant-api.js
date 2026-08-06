@@ -124,3 +124,19 @@ export const iamApi = {
   // Audit
   getAuditLogs: (params) => tenantApi.get("/audit/", { params }),
 };
+
+// ── Billing & Subscription API functions ──────────────────────────────────────────
+
+export const billingApi = {
+  getSubscription: () => tenantApi.get("/billing/subscription/"),
+  getUsage: () => tenantApi.get("/billing/usage/"),
+  getPlans: () => tenantApi.get("/billing/plans/"),
+  upgradePlan: (data) => tenantApi.post("/billing/upgrade/", data),
+  cancelSubscription: (data) => tenantApi.post("/billing/cancel/", data),
+  getInvoices: (params) => tenantApi.get("/billing/invoices/", { params }),
+  getInvoice: (id) => tenantApi.get(`/billing/invoices/${id}/`),
+  downloadInvoicePdf: (id) => tenantApi.get(`/billing/invoices/${id}/download/`, { responseType: "blob" }),
+  initiatePayment: (data) => tenantApi.post("/billing/payment/initiate/", data),
+  validateCoupon: (data) => tenantApi.post("/billing/coupons/validate/", data),
+};
+

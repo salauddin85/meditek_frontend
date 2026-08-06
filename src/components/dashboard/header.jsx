@@ -44,6 +44,10 @@ import flag2 from "public/images/all-img/flag-2.png";
 import flag3 from "public/images/all-img/flag-3.png";
 import { contacts } from "@/data/data";
 import { notifications } from "@/data/notification-data";
+import toast from "react-hot-toast";
+import { useTenantAuthStore } from "@/store/tenant-auth";
+import { iamApi } from "@/lib/tenant-api";
+
 
 
 
@@ -353,134 +357,88 @@ const NotificationMessage = () => {
 };
 
 const ProfileInfo = () => {
+  const router = useRouter();
+  const { user, logout: logoutStore } = useTenantAuthStore();
+
+  const handleLogout = async () => {
+    try {
+      await iamApi.logout();
+    } catch (err) {
+      // Ignore API errors during logout
+    } finally {
+      logoutStore();
+      toast.success("Logged out successfully.");
+      router.push("/auth/tenant-login");
+    }
+  };
+
+  const displayName = user?.full_name || "Hospital Admin";
+  const displayEmail = user?.email || "owner@meditek.com";
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild className=" cursor-pointer">
-        <div className=" flex items-center  ">
-          <Image src={avatar5} alt="" width={36} height={36} className="rounded-full" />
+      <DropdownMenuTrigger asChild className="cursor-pointer">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-9 w-9 border border-primary/20 ring-2 ring-primary/10">
+            <AvatarImage src={avatar5.src} />
+            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              {displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 p-0" align="end">
-        <DropdownMenuLabel className="flex gap-2 items-center mb-1 p-3">
-          <Image src={avatar5} alt="" width={36} height={36} className="rounded-full" />
-          <div>
-            <div className="text-sm font-medium text-default-800 capitalize ">
-              Mcc Callem
+      <DropdownMenuContent className="w-64 p-0" align="end">
+        <DropdownMenuLabel className="flex gap-3 items-center p-3 border-b border-border">
+          <Avatar className="h-10 w-10 border border-primary/20">
+            <AvatarImage src={avatar5.src} />
+            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              {displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="overflow-hidden">
+            <div className="text-sm font-bold text-default-900 truncate">
+              {displayName}
             </div>
-            <Link
-              href="/dashboard"
-              className="text-xs text-default-600 hover:text-primary"
-            >
-              @uxuidesigner
-            </Link>
+            <div className="text-xs text-default-500 truncate">
+              {displayEmail}
+            </div>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuGroup>
-          {[
-            {
-              name: "profile",
-              icon: "heroicons:user",
-              href: "/user-profile",
-            },
-            {
-              name: "Billing",
-              icon: "heroicons:megaphone",
-              href: "/dashboard",
-            },
-            {
-              name: "Settings",
-              icon: "heroicons:paper-airplane",
-              href: "/dashboard",
-            },
-            {
-              name: "Keyboard shortcuts",
-              icon: "heroicons:language",
-              href: "/dashboard",
-            },
-          ].map((item, index) => (
-            <Link
-              href={item.href}
-              key={`info-menu-${index}`}
-              className="cursor-pointer"
-            >
-              <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-                <Icon icon={item.icon} className="w-4 h-4" />
-                {item.name}
-              </DropdownMenuItem>
-            </Link>
-          ))}
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <Link href="/dashboard" className="cursor-pointer">
-            <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-              <Icon icon="heroicons:user-group" className="w-4 h-4" />
-              team
+        <DropdownMenuGroup className="p-1">
+          <Link href="/dashboard/settings/profile">
+            <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 px-3 py-2 cursor-pointer">
+              <Icon icon="heroicons:user" className="w-4 h-4" />
+              Profile Settings
             </DropdownMenuItem>
           </Link>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background">
-              <Icon icon="heroicons:user-plus" className="w-4 h-4" />
-              Invite user
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {[
-                  { name: "email" },
-                  { name: "message" },
-                  { name: "facebook" },
-                ].map((item, index) => (
-                  <Link
-                    href="/dashboard"
-                    key={`message-sub-${index}`}
-                    className="cursor-pointer"
-                  >
-                    <DropdownMenuItem className="text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-                      {item.name}
-                    </DropdownMenuItem>
-                  </Link>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-          <Link href="/dashboard">
-            <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-              <Icon icon="heroicons:variable" className="w-4 h-4" />
-              Github
+          <Link href="/dashboard/settings/billing">
+            <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 px-3 py-2 cursor-pointer">
+              <Icon icon="heroicons:credit-card" className="w-4 h-4" />
+              Billing & Subscription
             </DropdownMenuItem>
           </Link>
-
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-              <Icon icon="heroicons:phone" className="w-4 h-4" />
-              Support
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {[
-                  { name: "portal" },
-                  { name: "slack" },
-                  { name: "whatsapp" },
-                ].map((item, index) => (
-                  <Link href="/dashboard" key={`message-sub-${index}`}>
-                    <DropdownMenuItem className="text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-                      {item.name}
-                    </DropdownMenuItem>
-                  </Link>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
+          <Link href="/dashboard/settings/security">
+            <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 px-3 py-2 cursor-pointer">
+              <Icon icon="heroicons:shield-check" className="w-4 h-4" />
+              Security & MFA
+            </DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator className="mb-0 dark:bg-background" />
-        <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize my-1 px-3 dark:hover:bg-background cursor-pointer">
-          <Icon icon="heroicons:power" className="w-4 h-4" />
-          Log out
-        </DropdownMenuItem>
+        <DropdownMenuSeparator className="m-0" />
+        <div className="p-1">
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm font-semibold text-destructive focus:bg-destructive/10 focus:text-destructive px-3 py-2 cursor-pointer rounded-md"
+          >
+            <Icon icon="heroicons:power" className="w-4 h-4 text-destructive" />
+            Log out
+          </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
+
 
 
 

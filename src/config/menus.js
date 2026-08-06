@@ -20,6 +20,14 @@ export const tenantMenusConfig = {
         icon: Settings,
         child: [
           {
+            title: "Subscription & Billing",
+            href: "/dashboard/settings/billing",
+          },
+          {
+            title: "Invoices & Payments",
+            href: "/dashboard/settings/billing/invoices",
+          },
+          {
             title: "Team Members",
             href: "/dashboard/settings/team",
           },
@@ -56,6 +64,14 @@ export const tenantMenusConfig = {
         title: "Workspace Settings",
         icon: Settings,
         child: [
+          {
+            title: "Subscription & Billing",
+            href: "/dashboard/settings/billing",
+          },
+          {
+            title: "Invoices & Payments",
+            href: "/dashboard/settings/billing/invoices",
+          },
           {
             title: "Team Members",
             href: "/dashboard/settings/team",
