@@ -28,6 +28,10 @@ export const tenantMenusConfig = {
             href: "/dashboard/settings/billing/invoices",
           },
           {
+            title: "Branches & Departments",
+            href: "/dashboard/settings/branches",
+          },
+          {
             title: "Team Members",
             href: "/dashboard/settings/team",
           },
@@ -71,6 +75,10 @@ export const tenantMenusConfig = {
           {
             title: "Invoices & Payments",
             href: "/dashboard/settings/billing/invoices",
+          },
+          {
+            title: "Branches & Departments",
+            href: "/dashboard/settings/branches",
           },
           {
             title: "Team Members",

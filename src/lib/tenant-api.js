@@ -140,3 +140,18 @@ export const billingApi = {
   validateCoupon: (data) => tenantApi.post("/billing/coupons/validate/", data),
 };
 
+// ── Branch & Department API functions ─────────────────────────────────────────────
+
+export const branchesApi = {
+  getBranches: (params) => tenantApi.get("/branches/", { params }),
+  getMyBranches: () => tenantApi.get("/branches/my/"),
+  getBranch: (id) => tenantApi.get(`/branches/${id}/`),
+  createBranch: (data) => tenantApi.post("/branches/", data),
+  updateBranch: (id, data) => tenantApi.patch(`/branches/${id}/`, data),
+  deactivateBranch: (id) => tenantApi.delete(`/branches/${id}/`),
+  getDepartments: (branchId, params) => tenantApi.get(`/branches/${branchId}/departments/`, { params }),
+  createDepartment: (branchId, data) => tenantApi.post(`/branches/${branchId}/departments/`, data),
+  updateDepartment: (branchId, deptId, data) => tenantApi.patch(`/branches/${branchId}/departments/${deptId}/`, data),
+  deactivateDepartment: (branchId, deptId) => tenantApi.delete(`/branches/${branchId}/departments/${deptId}/`),
+};
+
