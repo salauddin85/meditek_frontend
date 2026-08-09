@@ -1,4 +1,4 @@
-import { DashBoard, Settings } from "@/components/svg";
+import { DashBoard, Settings, Users } from "@/components/svg";
 
 export const tenantMenusConfig = {
   mainNav: [
@@ -14,6 +14,20 @@ export const tenantMenusConfig = {
         title: "Dashboard",
         icon: DashBoard,
         href: "/dashboard",
+      },
+      {
+        title: "Staff & Doctors",
+        icon: Users,
+        child: [
+          {
+            title: "Doctors Directory",
+            href: "/dashboard/staff/doctors",
+          },
+          {
+            title: "Employee Directory",
+            href: "/dashboard/staff/employees",
+          },
+        ],
       },
       {
         title: "Settings",
@@ -63,6 +77,20 @@ export const tenantMenusConfig = {
         title: "Dashboard",
         icon: DashBoard,
         href: "/dashboard",
+      },
+      {
+        title: "Staff & Doctors",
+        icon: Users,
+        child: [
+          {
+            title: "Doctors Directory",
+            href: "/dashboard/staff/doctors",
+          },
+          {
+            title: "Employee Directory",
+            href: "/dashboard/staff/employees",
+          },
+        ],
       },
       {
         title: "Workspace Settings",

@@ -155,3 +155,26 @@ export const branchesApi = {
   deactivateDepartment: (branchId, deptId) => tenantApi.delete(`/branches/${branchId}/departments/${deptId}/`),
 };
 
+// ── Staff & Doctor API functions ──────────────────────────────────────────
+
+export const staffApi = {
+  getSpecialties: (params) => tenantApi.get("/specialties/", { params }),
+  createSpecialty: (data) => tenantApi.post("/specialties/", data),
+  getDoctors: (params) => tenantApi.get("/doctors/", { params }),
+  getDoctor: (id) => tenantApi.get(`/doctors/${id}/`),
+  createDoctor: (data) => tenantApi.post("/doctors/", data),
+  updateDoctor: (id, data) => tenantApi.patch(`/doctors/${id}/`, data),
+  deactivateDoctor: (id) => tenantApi.delete(`/doctors/${id}/`),
+  assignDoctorBranch: (id, data) => tenantApi.post(`/doctors/${id}/branches/`, data),
+  getDoctorSchedules: (id, params) => tenantApi.get(`/doctors/${id}/schedule/`, { params }),
+  createDoctorSchedule: (id, data) => tenantApi.post(`/doctors/${id}/schedule/`, data),
+  deleteDoctorSchedule: (id, tid) => tenantApi.delete(`/doctors/${id}/schedule/${tid}/`),
+  getDoctorAvailability: (id, params) => tenantApi.get(`/doctors/${id}/availability/`, { params }),
+  getEmployees: (params) => tenantApi.get("/employees/", { params }),
+  getEmployee: (id) => tenantApi.get(`/employees/${id}/`),
+  createEmployee: (data) => tenantApi.post("/employees/", data),
+  updateEmployee: (id, data) => tenantApi.patch(`/employees/${id}/`, data),
+  deactivateEmployee: (id) => tenantApi.delete(`/employees/${id}/`),
+};
+
+
