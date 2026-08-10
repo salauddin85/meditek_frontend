@@ -7,6 +7,32 @@ export const tenantMenusConfig = {
       icon: DashBoard,
       href: "/dashboard",
     },
+    {
+      title: "Appointments & Scheduling",
+      icon: DashBoard,
+      child: [
+        {
+          title: "Scheduling Dashboard",
+          href: "/dashboard/scheduling",
+        },
+        {
+          title: "Book Appointment",
+          href: "/dashboard/scheduling/book",
+        },
+        {
+          title: "Appointments List",
+          href: "/dashboard/scheduling/appointments",
+        },
+        {
+          title: "Live Queue Rooms",
+          href: "/dashboard/scheduling/queue",
+        },
+        {
+          title: "Doctor Calendar",
+          href: "/dashboard/scheduling/calendar",
+        },
+      ],
+    },
   ],
   sidebarNav: {
     modern: [
@@ -14,6 +40,32 @@ export const tenantMenusConfig = {
         title: "Dashboard",
         icon: DashBoard,
         href: "/dashboard",
+      },
+      {
+        title: "Appointments & Scheduling",
+        icon: DashBoard,
+        child: [
+          {
+            title: "Scheduling Dashboard",
+            href: "/dashboard/scheduling",
+          },
+          {
+            title: "Book Appointment",
+            href: "/dashboard/scheduling/book",
+          },
+          {
+            title: "Appointments List",
+            href: "/dashboard/scheduling/appointments",
+          },
+          {
+            title: "Live Queue Rooms",
+            href: "/dashboard/scheduling/queue",
+          },
+          {
+            title: "Doctor Calendar",
+            href: "/dashboard/scheduling/calendar",
+          },
+        ],
       },
       {
         title: "Patients",
@@ -97,6 +149,32 @@ export const tenantMenusConfig = {
         href: "/dashboard",
       },
       {
+        title: "Appointments & Scheduling",
+        icon: DashBoard,
+        child: [
+          {
+            title: "Scheduling Dashboard",
+            href: "/dashboard/scheduling",
+          },
+          {
+            title: "Book Appointment",
+            href: "/dashboard/scheduling/book",
+          },
+          {
+            title: "Appointments List",
+            href: "/dashboard/scheduling/appointments",
+          },
+          {
+            title: "Live Queue Rooms",
+            href: "/dashboard/scheduling/queue",
+          },
+          {
+            title: "Doctor Calendar",
+            href: "/dashboard/scheduling/calendar",
+          },
+        ],
+      },
+      {
         title: "Patients",
         icon: Users,
         child: [
@@ -169,7 +247,6 @@ export const tenantMenusConfig = {
     ],
   },
 };
-
 
 export const menusConfig = {
   tenant: tenantMenusConfig,

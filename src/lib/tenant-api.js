@@ -199,4 +199,27 @@ export const patientApi = {
   getSummary: (id) => tenantApi.get(`/patients/${id}/summary/`),
 };
 
+// ── Appointment & Scheduling API functions ───────────────────────────────────
+
+export const schedulingApi = {
+  getSlots: (params) => tenantApi.get("/scheduling/slots/", { params }),
+  bookAppointment: (data) => tenantApi.post("/scheduling/book/", data),
+  registerWalkIn: (data) => tenantApi.post("/scheduling/walk-in/", data),
+  getAppointments: (params) => tenantApi.get("/scheduling/appointments/", { params }),
+  getAppointment: (id) => tenantApi.get(`/scheduling/appointments/${id}/`),
+  updateAppointmentStatus: (id, data) => tenantApi.patch(`/scheduling/appointments/${id}/status/`, data),
+  cancelAppointment: (id, data) => tenantApi.post(`/scheduling/appointments/${id}/cancel/`, data),
+  createRecurringSeries: (id, data) => tenantApi.post(`/scheduling/appointments/${id}/recurring/`, data),
+  getQueue: (params) => tenantApi.get("/scheduling/queue/", { params }),
+  callNextQueue: (data) => tenantApi.post("/scheduling/queue/call-next/", data),
+  getWaitlist: (params) => tenantApi.get("/scheduling/waitlist/", { params }),
+  addToWaitlist: (data) => tenantApi.post("/scheduling/waitlist/", data),
+  getBlackouts: (params) => tenantApi.get("/scheduling/blackout/", { params }),
+  createBlackout: (data) => tenantApi.post("/scheduling/blackout/", data),
+  getDoctorCalendar: (doctorId, params) => tenantApi.get(`/scheduling/doctor/${doctorId}/calendar/`, { params }),
+  getPublicQueueDisplay: (branchId, doctorId) =>
+    tenantApi.get(`/scheduling/public/queue/${branchId}/${doctorId}/`),
+};
+
+
 
