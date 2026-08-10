@@ -16,6 +16,24 @@ export const tenantMenusConfig = {
         href: "/dashboard",
       },
       {
+        title: "Patients",
+        icon: Users,
+        child: [
+          {
+            title: "Patient Directory",
+            href: "/dashboard/patients",
+          },
+          {
+            title: "Register Patient",
+            href: "/dashboard/patients/register",
+          },
+          {
+            title: "Merge Records",
+            href: "/dashboard/patients/merge",
+          },
+        ],
+      },
+      {
         title: "Staff & Doctors",
         icon: Users,
         child: [
@@ -77,6 +95,24 @@ export const tenantMenusConfig = {
         title: "Dashboard",
         icon: DashBoard,
         href: "/dashboard",
+      },
+      {
+        title: "Patients",
+        icon: Users,
+        child: [
+          {
+            title: "Patient Directory",
+            href: "/dashboard/patients",
+          },
+          {
+            title: "Register Patient",
+            href: "/dashboard/patients/register",
+          },
+          {
+            title: "Merge Records",
+            href: "/dashboard/patients/merge",
+          },
+        ],
       },
       {
         title: "Staff & Doctors",

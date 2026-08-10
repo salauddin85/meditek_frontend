@@ -177,4 +177,26 @@ export const staffApi = {
   deactivateEmployee: (id) => tenantApi.delete(`/employees/${id}/`),
 };
 
+// ── Patient API functions ─────────────────────────────────────────────
+
+export const patientApi = {
+  getPatients: (params) => tenantApi.get("/patients/", { params }),
+  getPatient: (id) => tenantApi.get(`/patients/${id}/`),
+  createPatient: (data) => tenantApi.post("/patients/", data),
+  updatePatient: (id, data) => tenantApi.patch(`/patients/${id}/`, data),
+  deletePatient: (id) => tenantApi.delete(`/patients/${id}/`),
+  searchPatients: (query) => tenantApi.get("/patients/search/", { params: { q: query } }),
+  lookupPatientByQR: (mrn) => tenantApi.get(`/patients/qr/${mrn}/`),
+  checkDuplicate: (params) => tenantApi.get("/patients/check-duplicate/", { params }),
+  getContacts: (id) => tenantApi.get(`/patients/${id}/contacts/`),
+  addContact: (id, data) => tenantApi.post(`/patients/${id}/contacts/`, data),
+  addFamilyLink: (id, data) => tenantApi.post(`/patients/${id}/family-links/`, data),
+  removeFamilyLink: (id, linkId) => tenantApi.delete(`/patients/${id}/family-links/${linkId}/`),
+  mergePatients: (data) => tenantApi.post("/patients/merge/", data),
+  reverseMerge: (logId) => tenantApi.post(`/patients/merge/${logId}/reverse/`),
+  getMergeLogs: () => tenantApi.get("/patients/merge/logs/"),
+  getMergeHistory: (id) => tenantApi.get(`/patients/${id}/merge-history/`),
+  getSummary: (id) => tenantApi.get(`/patients/${id}/summary/`),
+};
+
 
