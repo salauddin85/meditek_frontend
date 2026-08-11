@@ -87,7 +87,7 @@ function SortableQueueItem({ entry, isDragging }) {
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-mono font-extrabold text-base border shrink-0
           ${entry.is_reordered ? "bg-rose-500/10 text-rose-700 border-rose-500/30" : "bg-amber-500/10 text-amber-700 border-amber-500/20"}
         `}>
-          #{entry.queue_position}
+          #{entry.appointment_details?.serial_number || entry.queue_position}
         </div>
         <div className="min-w-0">
           <span className="font-bold text-default-900 text-sm truncate block">
@@ -119,7 +119,7 @@ function DragOverlayItem({ entry }) {
     <div className="p-4 flex items-center gap-4 bg-card border border-primary shadow-2xl shadow-primary/20 rounded-xl">
       <GripVertical className="w-4 h-4 text-primary" />
       <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/30 flex items-center justify-center font-mono font-extrabold text-base">
-        #{entry.queue_position}
+        #{entry.appointment_details?.serial_number || entry.queue_position}
       </div>
       <div>
         <span className="font-bold text-sm text-default-900">{entry.appointment_details?.patient_name}</span>
@@ -188,7 +188,7 @@ export default function LiveQueueControllerPage({ params }) {
     loadInfo();
   }, [doctorId]);
 
-  // Fetch queue data (also checks for new unqueued appointments for today)
+  // Fetch queue data (also checks for new checked_in appointments for today)
   const fetchQueue = useCallback(async () => {
     if (!doctorId) return;
     setLoading(true);
@@ -198,6 +198,7 @@ export default function LiveQueueControllerPage({ params }) {
         schedulingApi.getAppointments({
           doctor_id: doctorId,
           branch_id: selectedBranchId || undefined,
+          status: "checked_in",
           date_from: format(new Date(), "yyyy-MM-dd"),
           date_to: format(new Date(), "yyyy-MM-dd"),
         }),
@@ -208,12 +209,10 @@ export default function LiveQueueControllerPage({ params }) {
         setQueue(q);
         setOptimisticQueue(q.filter((e) => e.status === "waiting").sort((a, b) => a.queue_position - b.queue_position));
 
-        // Detect appointments for today not yet in queue
+        // Detect checked_in appointments for today not yet in queue
         if (apptRes.data?.data) {
           const queueApptIds = new Set(q.map((e) => e.appointment));
-          const notInQueue = apptRes.data.data.filter(
-            (a) => !queueApptIds.has(a.id) && ["scheduled", "confirmed", "checked_in"].includes(a.status)
-          );
+          const notInQueue = apptRes.data.data.filter((a) => !queueApptIds.has(a.id));
           setNewCheckedInCount(notInQueue.length);
         }
       }
@@ -236,9 +235,10 @@ export default function LiveQueueControllerPage({ params }) {
     try {
       const res = await schedulingApi.callNextQueue({ doctor_id: doctorId, branch_id: selectedBranchId });
       if (res.data?.data) {
-        toast.success(`Called Serial #${res.data.data.queue_position} into chamber!`);
+        const serialNum = res.data.data.appointment_details?.serial_number || res.data.data.queue_position;
+        toast.success(`Called Serial #${serialNum} into chamber!`);
       } else {
-        toast.info("No waiting patients in queue.");
+        toast.success(res.data?.message || "Patient completed. Queue is now empty.");
       }
       fetchQueue();
     } catch (err) {
@@ -247,6 +247,7 @@ export default function LiveQueueControllerPage({ params }) {
       setCallingNext(false);
     }
   };
+
 
   // Push currently serving patient to back
   const handlePushBack = async () => {
@@ -462,7 +463,7 @@ export default function LiveQueueControllerPage({ params }) {
             {currentlyServing ? (
               <>
                 <div className="text-7xl font-black text-primary font-mono tracking-tight animate-pulse">
-                  #{currentlyServing.queue_position}
+                  #{currentlyServing.appointment_details?.serial_number || currentlyServing.queue_position}
                 </div>
                 <div>
                   <h3 className="text-lg font-extrabold text-default-900">
@@ -498,7 +499,7 @@ export default function LiveQueueControllerPage({ params }) {
             <div className={`pt-4 border-t border-primary/10 ${currentlyServing ? "mt-2" : ""}`}>
               <Button
                 onClick={handleCallNext}
-                disabled={callingNext || optimisticQueue.length === 0}
+                disabled={callingNext || (!currentlyServing && optimisticQueue.length === 0)}
                 className="w-full h-12 text-base font-extrabold gap-2 shadow-lg shadow-primary/30"
               >
                 {callingNext ? (
@@ -506,7 +507,7 @@ export default function LiveQueueControllerPage({ params }) {
                 ) : (
                   <>
                     <Play className="w-5 h-5 fill-current" />
-                    Call Next Patient
+                    {currentlyServing && optimisticQueue.length === 0 ? "Complete Last Patient" : "Call Next Patient"}
                   </>
                 )}
               </Button>
