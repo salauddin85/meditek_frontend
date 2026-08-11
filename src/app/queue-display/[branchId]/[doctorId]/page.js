@@ -97,15 +97,31 @@ export default function PublicWaitingRoomDisplayPage({ params }) {
           </div>
 
           {queueData?.upcoming_serials && queueData.upcoming_serials.length > 0 ? (
-            <div className="grid grid-cols-5 gap-3">
-              {queueData.upcoming_serials.map((serial, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center font-mono text-xl font-bold text-slate-200"
-                >
-                  #{serial}
-                </div>
-              ))}
+            <div className="flex flex-col gap-3">
+              {queueData.upcoming_serials.map((serial, idx) => {
+                // Support both old number format and new object format
+                const position = typeof serial === "object" ? serial.position : serial;
+                const isReordered = typeof serial === "object" ? serial.is_reordered : false;
+                const reorderReason = typeof serial === "object" ? serial.reorder_reason : null;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`border rounded-xl px-4 py-3 flex items-center justify-between font-mono text-lg font-bold ${
+                      isReordered
+                        ? "bg-rose-950/40 border-rose-500/40 text-rose-300"
+                        : "bg-slate-800/80 border-slate-700 text-slate-200"
+                    }`}
+                  >
+                    <span>#{position}</span>
+                    {isReordered && reorderReason && (
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 ml-2">
+                        ⚡ {reorderReason}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="py-12 text-center text-slate-500 text-sm font-semibold">

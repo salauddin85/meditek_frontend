@@ -168,7 +168,6 @@ export default function AppointmentsListPage() {
           >
             <option value="">All Statuses</option>
             <option value="scheduled">Scheduled</option>
-            <option value="confirmed">Confirmed</option>
             <option value="checked_in">Checked In</option>
             <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
@@ -304,22 +303,11 @@ export default function AppointmentsListPage() {
                           <Button
                             size="xs"
                             variant="soft"
-                            color="success"
-                            onClick={() => handleUpdateStatus(appt.id, "confirmed")}
-                            className="font-bold"
-                          >
-                            Confirm
-                          </Button>
-                        )}
-
-                        {["scheduled", "confirmed"].includes(appt.status) && (
-                          <Button
-                            size="xs"
-                            variant="soft"
                             color="warning"
                             onClick={() => handleUpdateStatus(appt.id, "checked_in")}
-                            className="font-bold"
+                            className="font-bold gap-1"
                           >
+                            <UserCheck className="w-3 h-3" />
                             Check In
                           </Button>
                         )}

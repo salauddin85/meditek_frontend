@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
+  Activity,
+  BarChart2,
   Calendar,
   Clock,
   UserPlus,
@@ -17,7 +19,6 @@ import {
   Loader2,
   ArrowRight,
   TrendingUp,
-  Activity,
   Tv,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -118,6 +119,13 @@ export default function SchedulingDashboardPage() {
             <Button variant="outline" className="h-10 px-4 font-bold gap-2">
               <Calendar className="w-4 h-4 text-primary" />
               Doctor Calendar
+            </Button>
+          </Link>
+
+          <Link href="/dashboard/scheduling/audit">
+            <Button variant="outline" className="h-10 px-4 font-bold gap-2">
+              <BarChart2 className="w-4 h-4 text-primary" />
+              Schedule Audit
             </Button>
           </Link>
         </div>

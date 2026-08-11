@@ -31,6 +31,10 @@ export const tenantMenusConfig = {
           title: "Doctor Calendar",
           href: "/dashboard/scheduling/calendar",
         },
+        {
+          title: "Schedule Audit",
+          href: "/dashboard/scheduling/audit",
+        },
       ],
     },
   ],
@@ -64,6 +68,10 @@ export const tenantMenusConfig = {
           {
             title: "Doctor Calendar",
             href: "/dashboard/scheduling/calendar",
+          },
+          {
+            title: "Schedule Audit",
+            href: "/dashboard/scheduling/audit",
           },
         ],
       },
@@ -171,6 +179,10 @@ export const tenantMenusConfig = {
           {
             title: "Doctor Calendar",
             href: "/dashboard/scheduling/calendar",
+          },
+          {
+            title: "Schedule Audit",
+            href: "/dashboard/scheduling/audit",
           },
         ],
       },
