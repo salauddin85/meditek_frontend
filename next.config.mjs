@@ -30,6 +30,21 @@ const nextConfig = {
       },
     ],
   },
+
+  async redirects() {
+    return [
+      {
+        source: "/dashboard/reception/cash-drawer",
+        destination: "/dashboard/reception/cash_drawer",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/reception/cash%20drawer",
+        destination: "/dashboard/reception/cash_drawer",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

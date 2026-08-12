@@ -224,5 +224,24 @@ export const schedulingApi = {
     tenantApi.get(`/scheduling/public/queue/${branchId}/${doctorId}/`),
 };
 
+// ── Reception & Front Desk API functions ──────────────────────────────────
+export const receptionApi = {
+  getOverview: (params) => tenantApi.get("/reception/overview/", { params }),
+  checkInQR: (data) => tenantApi.post("/reception/checkin/qr/", data),
+  checkInNew: (data) => tenantApi.post("/reception/checkin/new/", data),
+  checkInAppointment: (data) => tenantApi.post("/reception/checkin/appointment/", data),
+  getVisitTokens: (params) => tenantApi.get("/reception/tokens/", { params }),
+  getPrintPayload: (tokenId) => tenantApi.get(`/reception/tokens/${tokenId}/print/`),
+  getActiveDrawer: (params) => tenantApi.get("/reception/cash-drawer/active/", { params }),
+  openDrawer: (data) => tenantApi.post("/reception/cash-drawer/open/", data),
+  getDrawerSessions: (params) => tenantApi.get("/reception/cash-drawer/sessions/", { params }),
+  closeDrawer: (sessionId, data) => tenantApi.post(`/reception/cash-drawer/${sessionId}/close/`, data),
+  approveDrawerVariance: (sessionId, data) => tenantApi.post(`/reception/cash-drawer/${sessionId}/supervisor-approve/`, data),
+  recordDrawerTransaction: (sessionId, data) => tenantApi.post(`/reception/cash-drawer/${sessionId}/transaction/`, data),
+  processSplitPayment: (data) => tenantApi.post("/reception/payments/split/", data),
+  getPaymentSplits: (params) => tenantApi.get("/reception/payments/", { params }),
+};
+
+
 
 

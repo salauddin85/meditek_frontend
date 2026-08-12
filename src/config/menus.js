@@ -37,6 +37,32 @@ export const tenantMenusConfig = {
         },
       ],
     },
+    {
+      title: "Reception & Desk",
+      icon: DashBoard,
+      child: [
+        {
+          title: "Reception Overview",
+          href: "/dashboard/reception",
+        },
+        {
+          title: "Front Desk Check-In",
+          href: "/dashboard/reception/checkin",
+        },
+        {
+          title: "Visit Tokens",
+          href: "/dashboard/reception/tokens",
+        },
+        {
+          title: "Cash Drawer",
+          href: "/dashboard/reception/cash_drawer",
+        },
+        {
+          title: "Split Payment Counter",
+          href: "/dashboard/reception/payments",
+        },
+      ],
+    },
   ],
   sidebarNav: {
     modern: [
@@ -72,6 +98,32 @@ export const tenantMenusConfig = {
           {
             title: "Schedule Audit",
             href: "/dashboard/scheduling/audit",
+          },
+        ],
+      },
+      {
+        title: "Reception & Desk",
+        icon: Users,
+        child: [
+          {
+            title: "Reception Overview",
+            href: "/dashboard/reception",
+          },
+          {
+            title: "Front Desk Check-In",
+            href: "/dashboard/reception/checkin",
+          },
+          {
+            title: "Visit Tokens",
+            href: "/dashboard/reception/tokens",
+          },
+          {
+            title: "Cash Drawer",
+            href: "/dashboard/reception/cash_drawer",
+          },
+          {
+            title: "Split Payment Counter",
+            href: "/dashboard/reception/payments",
           },
         ],
       },
@@ -183,6 +235,32 @@ export const tenantMenusConfig = {
           {
             title: "Schedule Audit",
             href: "/dashboard/scheduling/audit",
+          },
+        ],
+      },
+      {
+        title: "Reception & Desk",
+        icon: Users,
+        child: [
+          {
+            title: "Reception Overview",
+            href: "/dashboard/reception",
+          },
+          {
+            title: "Front Desk Check-In",
+            href: "/dashboard/reception/checkin",
+          },
+          {
+            title: "Visit Tokens",
+            href: "/dashboard/reception/tokens",
+          },
+          {
+            title: "Cash Drawer",
+            href: "/dashboard/reception/cash_drawer",
+          },
+          {
+            title: "Split Payment Counter",
+            href: "/dashboard/reception/payments",
           },
         ],
       },

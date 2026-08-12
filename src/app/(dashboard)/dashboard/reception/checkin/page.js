@@ -1,0 +1,592 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import { format } from "date-fns";
+import {
+  UserCheck,
+  QrCode,
+  UserPlus,
+  Calendar,
+  Search,
+  CheckCircle2,
+  Printer,
+  Loader2,
+  ArrowLeft,
+  X,
+  User,
+  Phone,
+  Building2,
+  Clock,
+} from "lucide-react";
+import toast from "react-hot-toast";
+
+import { receptionApi, branchesApi, staffApi, schedulingApi } from "@/lib/tenant-api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const safeFormatDate = (dateStr, pattern = "dd/MM/yyyy hh:mm a") => {
+  if (!dateStr) return "—";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return format(d, pattern);
+  } catch {
+    return "—";
+  }
+};
+
+export default function FrontDeskCheckInPage() {
+  const [activeTab, setActiveTab] = useState("qr"); // qr | new | appointment
+  const [branches, setBranches] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [selectedBranchId, setSelectedBranchId] = useState("");
+
+  // Tab 1: Rapid QR / MRN state
+  const [qrInput, setQrInput] = useState("");
+  const [processingQr, setProcessingQr] = useState(false);
+  const qrInputRef = useRef(null);
+
+  // Tab 2: New Patient Fast Register state
+  const [newPatient, setNewPatient] = useState({
+    full_name: "",
+    gender: "male",
+    phone: "",
+    age_years: "",
+    doctor_id: "",
+  });
+  const [registering, setRegistering] = useState(false);
+
+  // Tab 3: Today's Scheduled Appointments state
+  const [todayAppts, setTodayAppts] = useState([]);
+  const [loadingAppts, setLoadingAppts] = useState(false);
+  const [apptSearch, setApptSearch] = useState("");
+
+  // Printed token modal
+  const [issuedToken, setIssuedToken] = useState(null);
+  const [printPayload, setPrintPayload] = useState(null);
+
+  // Load initial data
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [brRes, docRes] = await Promise.all([
+          branchesApi.getBranches(),
+          staffApi.getDoctors(),
+        ]);
+        if (brRes.data?.data?.length > 0) {
+          setBranches(brRes.data.data);
+          setSelectedBranchId(brRes.data.data[0].id);
+        }
+        if (docRes.data?.data) {
+          setDoctors(docRes.data.data);
+          if (docRes.data.data.length > 0) {
+            setNewPatient((prev) => ({ ...prev, doctor_id: docRes.data.data[0].id }));
+          }
+        }
+      } catch {
+        toast.error("Failed to load initial reception data.");
+      }
+    }
+    loadData();
+  }, []);
+
+  // Fetch today's scheduled appointments for Tab 3
+  const fetchTodayAppts = useCallback(async () => {
+    if (!selectedBranchId) return;
+    setLoadingAppts(true);
+    try {
+      const res = await schedulingApi.getAppointments({
+        branch_id: selectedBranchId,
+        date_from: format(new Date(), "yyyy-MM-dd"),
+        date_to: format(new Date(), "yyyy-MM-dd"),
+      });
+      if (res.data?.data) {
+        setTodayAppts(res.data.data);
+      }
+    } catch {
+      toast.error("Failed to load today's appointments.");
+    } finally {
+      setLoadingAppts(false);
+    }
+  }, [selectedBranchId]);
+
+  useEffect(() => {
+    if (activeTab === "appointment") {
+      fetchTodayAppts();
+    }
+  }, [activeTab, fetchTodayAppts]);
+
+  // Focus QR input on mount
+  useEffect(() => {
+    if (activeTab === "qr" && qrInputRef.current) {
+      qrInputRef.current.focus();
+    }
+  }, [activeTab]);
+
+  // ── Handler 1: Rapid QR Check-In ──────────────────────────
+  const handleQrCheckIn = async (e) => {
+    if (e) e.preventDefault();
+    if (!qrInput.trim()) return toast.error("Please enter or scan MRN / QR Code.");
+    setProcessingQr(true);
+    try {
+      const res = await receptionApi.checkInQR({
+        qr_data: qrInput.trim(),
+        branch_id: selectedBranchId,
+      });
+      const token = res.data?.data;
+      setIssuedToken(token);
+      toast.success(res.data?.message || "Patient checked in!");
+      setQrInput("");
+
+      // Fetch print payload
+      if (token?.id) {
+        const printRes = await receptionApi.getPrintPayload(token.id);
+        setPrintPayload(printRes.data?.data);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "QR Check-in failed.");
+    } finally {
+      setProcessingQr(false);
+    }
+  };
+
+  // ── Handler 2: Fast Register New Patient Check-In ──────────
+  const handleNewPatientCheckIn = async (e) => {
+    e.preventDefault();
+    if (!newPatient.full_name.trim()) return toast.error("Patient name is required.");
+    if (!newPatient.doctor_id) return toast.error("Please select a doctor.");
+    setRegistering(true);
+    try {
+      const res = await receptionApi.checkInNew({
+        ...newPatient,
+        branch_id: selectedBranchId,
+        age_years: newPatient.age_years ? parseInt(newPatient.age_years) : null,
+      });
+      const token = res.data?.data;
+      setIssuedToken(token);
+      toast.success(res.data?.message || "New patient registered & checked in!");
+
+      setNewPatient({
+        full_name: "",
+        gender: "male",
+        phone: "",
+        age_years: "",
+        doctor_id: doctors[0]?.id || "",
+      });
+
+      if (token?.id) {
+        const printRes = await receptionApi.getPrintPayload(token.id);
+        setPrintPayload(printRes.data?.data);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "New patient check-in failed.");
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  // ── Handler 3: Appointment Check-In ──────────────────────
+  const handleAppointmentCheckIn = async (apptId) => {
+    try {
+      const res = await receptionApi.checkInAppointment({
+        appointment_id: apptId,
+        branch_id: selectedBranchId,
+      });
+      const token = res.data?.data;
+      setIssuedToken(token);
+      toast.success("Appointment checked in & token issued!");
+      fetchTodayAppts();
+
+      if (token?.id) {
+        const printRes = await receptionApi.getPrintPayload(token.id);
+        setPrintPayload(printRes.data?.data);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Check-in failed.");
+    }
+  };
+
+  // Filtered today's appointments
+  const filteredAppts = todayAppts.filter((a) => {
+    if (!apptSearch.trim()) return true;
+    const q = apptSearch.toLowerCase();
+    return (
+      a.patient_name?.toLowerCase().includes(q) ||
+      a.patient_mrn?.toLowerCase().includes(q) ||
+      a.doctor_name?.toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+      <Link
+        href="/dashboard/reception"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-default-500 hover:text-primary transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back to Reception Command Center
+      </Link>
+
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+        <div>
+          <h1 className="text-2xl font-extrabold text-default-900 flex items-center gap-2">
+            <UserCheck className="w-6 h-6 text-primary" />
+            Front Desk Check-In Suite
+          </h1>
+          <p className="text-xs text-default-500 mt-1">
+            Rapid QR scan, fast new walk-in patient registration, or scheduled appointment check-in.
+          </p>
+        </div>
+
+        <select
+          value={selectedBranchId}
+          onChange={(e) => setSelectedBranchId(e.target.value)}
+          className="h-10 px-3 rounded-lg border border-default-200 bg-background text-xs font-bold text-default-800"
+        >
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name} ({b.code})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Check-In Tabs Header */}
+      <div className="flex border-b border-border gap-2 bg-default-50 p-1 rounded-xl">
+        <button
+          onClick={() => setActiveTab("qr")}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "qr"
+              ? "bg-white dark:bg-card text-primary shadow-sm"
+              : "text-default-600 hover:text-default-900"
+          }`}
+        >
+          <QrCode className="w-4 h-4" />
+          ⚡ 1-Click QR / MRN Scan
+        </button>
+
+        <button
+          onClick={() => setActiveTab("new")}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "new"
+              ? "bg-white dark:bg-card text-primary shadow-sm"
+              : "text-default-600 hover:text-default-900"
+          }`}
+        >
+          <UserPlus className="w-4 h-4" />
+          👤 Fast Register New Patient
+        </button>
+
+        <button
+          onClick={() => setActiveTab("appointment")}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "appointment"
+              ? "bg-white dark:bg-card text-primary shadow-sm"
+              : "text-default-600 hover:text-default-900"
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          📅 Scheduled Appointments
+        </button>
+      </div>
+
+      {/* Tab 1: ⚡ Rapid QR / MRN Lookup */}
+      {activeTab === "qr" && (
+        <Card className="border-2 border-primary/20 shadow-lg">
+          <CardHeader className="border-b border-border py-4">
+            <CardTitle className="text-base font-bold text-default-900 flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-primary" />
+              Rapid Patient Scan & Check-In (&lt; 2 Seconds Target)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <form onSubmit={handleQrCheckIn} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-default-700">
+                  Scan Barcode / QR or Type Patient MRN
+                </label>
+                <div className="relative">
+                  <Input
+                    ref={qrInputRef}
+                    placeholder="e.g. BR-01-2026-00004 or Scan QR..."
+                    value={qrInput}
+                    onChange={(e) => setQrInput(e.target.value)}
+                    className="h-14 text-lg font-mono pl-12 pr-32 border-2 border-primary/40 focus:border-primary"
+                  />
+                  <QrCode className="w-6 h-6 text-primary absolute left-4 top-4" />
+                  <Button
+                    type="submit"
+                    disabled={processingQr || !qrInput.trim()}
+                    className="absolute right-2 top-2 h-10 px-6 font-extrabold gap-2"
+                  >
+                    {processingQr ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <UserCheck className="w-4 h-4" /> Check In
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
+
+            <div className="bg-default-50 rounded-xl p-4 border border-default-200 text-xs text-default-600 space-y-1">
+              <p className="font-bold text-default-800 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Scanner Ready
+              </p>
+              <p>
+                Point physical USB barcode scanner at patient's card or phone QR code.
+                The system automatically verifies scheduled appointments for today, issues visit token, and adds patient to the doctor's live queue.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tab 2: 👤 Fast Register New Patient */}
+      {activeTab === "new" && (
+        <Card className="shadow-lg border-2 border-primary/20">
+          <CardHeader className="border-b border-border py-4">
+            <CardTitle className="text-base font-bold text-default-900 flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-primary" />
+              Fast Walk-In Registration (&lt; 3 Minutes Target)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <form onSubmit={handleNewPatientCheckIn} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-default-700">Patient Full Name *</label>
+                  <Input
+                    placeholder="e.g. Mohammad Rahim"
+                    value={newPatient.full_name}
+                    onChange={(e) => setNewPatient({ ...newPatient, full_name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-default-700">Phone Number</label>
+                  <Input
+                    placeholder="e.g. 01700000000"
+                    value={newPatient.phone}
+                    onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-default-700">Gender *</label>
+                  <select
+                    value={newPatient.gender}
+                    onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
+                    className="w-full h-10 px-3 rounded-lg border border-default-200 bg-background text-sm font-medium"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-default-700">Age (Years)</label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 35"
+                    value={newPatient.age_years}
+                    onChange={(e) => setNewPatient({ ...newPatient, age_years: e.target.value })}
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-bold text-default-700">Select Consulting Doctor *</label>
+                  <select
+                    value={newPatient.doctor_id}
+                    onChange={(e) => setNewPatient({ ...newPatient, doctor_id: e.target.value })}
+                    className="w-full h-10 px-3 rounded-lg border border-default-200 bg-background text-sm font-medium"
+                    required
+                  >
+                    {doctors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        Dr. {d.full_name} ({d.designation || "Doctor"}) — Fee: ৳{d.consult_fee}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border flex justify-end gap-2">
+                <Button type="submit" disabled={registering} className="h-11 px-8 font-bold gap-2">
+                  {registering ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <UserCheck className="w-4 h-4" /> Register & Issue Token
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tab 3: 📅 Scheduled Appointments */}
+      {activeTab === "appointment" && (
+        <Card className="shadow-lg">
+          <CardHeader className="border-b border-border py-4 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="text-base font-bold text-default-900 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              Today's Appointments Check-In List
+            </CardTitle>
+            <Input
+              placeholder="Search patient MRN or name..."
+              value={apptSearch}
+              onChange={(e) => setApptSearch(e.target.value)}
+              className="max-w-xs text-xs"
+            />
+          </CardHeader>
+          <CardContent className="p-0">
+            {loadingAppts ? (
+              <div className="py-16 text-center text-default-400">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+                <p className="mt-2 text-xs font-bold">Loading today's appointments...</p>
+              </div>
+            ) : filteredAppts.length === 0 ? (
+              <div className="py-16 text-center text-default-400 text-xs space-y-2">
+                <User className="w-8 h-8 mx-auto text-default-300" />
+                <p>No appointments found matching search.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-default-50 text-default-700 font-bold border-b border-border uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="p-3 pl-6">Patient</th>
+                      <th className="p-3">Doctor</th>
+                      <th className="p-3">Time / Serial</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right pr-6">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border font-medium">
+                    {filteredAppts.map((a) => (
+                      <tr key={a.id} className="hover:bg-default-50 transition-colors">
+                        <td className="p-3 pl-6">
+                          <span className="font-bold text-default-900 block">{a.patient_name}</span>
+                          <span className="text-[10px] font-mono text-default-400">MRN: {a.patient_mrn}</span>
+                        </td>
+                        <td className="p-3 text-default-800 font-semibold">{a.doctor_name}</td>
+                        <td className="p-3 text-default-600 font-mono">
+                          {a.start_time || `Serial #${a.serial_number}`}
+                        </td>
+                        <td className="p-3">
+                          <Badge
+                            color={
+                              a.status === "checked_in"
+                                ? "success"
+                                : a.status === "in_progress"
+                                ? "primary"
+                                : "warning"
+                            }
+                            className="text-[10px] uppercase font-bold"
+                          >
+                            {a.status}
+                          </Badge>
+                        </td>
+                        <td className="p-3 text-right pr-6">
+                          {a.status === "scheduled" || a.status === "confirmed" ? (
+                            <Button
+                              size="xs"
+                              onClick={() => handleAppointmentCheckIn(a.id)}
+                              className="font-bold gap-1"
+                            >
+                              <UserCheck className="w-3.5 h-3.5" /> Check In & Issue Token
+                            </Button>
+                          ) : (
+                            <Badge color="success" className="text-[10px] font-bold">
+                              Already Checked In
+                            </Badge>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Issued Token Print Modal (Thermal Receipt Payload) ───── */}
+      {issuedToken && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card w-full max-w-sm rounded-2xl shadow-2xl border border-border p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="font-extrabold text-default-900 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                Visit Token Issued
+              </h3>
+              <button
+                onClick={() => {
+                  setIssuedToken(null);
+                  setPrintPayload(null);
+                }}
+                className="text-default-400 hover:text-default-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Thermal Slip Receipt Box (58mm/80mm Style) */}
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-5 text-center space-y-3 font-mono">
+              <p className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-400">
+                {issuedToken.branch_name || "MEDITek Hospital"}
+              </p>
+
+              <div className="text-4xl font-black text-amber-900 dark:text-amber-200 py-1 border-y border-amber-300/60 border-dashed">
+                #{issuedToken.token_number}
+              </div>
+
+              <div className="text-xs text-default-800 space-y-1">
+                <p className="font-bold text-sm">{issuedToken.patient_name}</p>
+                <p className="text-[10px] text-default-500">MRN: {issuedToken.patient_mrn}</p>
+                <p className="font-bold text-amber-800 dark:text-amber-300 mt-2">
+                  {issuedToken.doctor_name}
+                </p>
+                <p className="text-[10px] text-default-400">
+                  {safeFormatDate(issuedToken.issued_at)}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIssuedToken(null);
+                  setPrintPayload(null);
+                }}
+                className="flex-1 font-bold"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  window.print();
+                }}
+                className="flex-1 font-bold gap-2"
+              >
+                <Printer className="w-4 h-4" /> Print Thermal Slip
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
