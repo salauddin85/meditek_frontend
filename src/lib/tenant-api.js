@@ -235,6 +235,7 @@ export const receptionApi = {
   getActiveDrawer: (params) => tenantApi.get("/reception/cash-drawer/active/", { params }),
   openDrawer: (data) => tenantApi.post("/reception/cash-drawer/open/", data),
   getDrawerSessions: (params) => tenantApi.get("/reception/cash-drawer/sessions/", { params }),
+  getDrawerSessionDetail: (sessionId) => tenantApi.get(`/reception/cash-drawer/${sessionId}/`),
   closeDrawer: (sessionId, data) => tenantApi.post(`/reception/cash-drawer/${sessionId}/close/`, data),
   approveDrawerVariance: (sessionId, data) => tenantApi.post(`/reception/cash-drawer/${sessionId}/supervisor-approve/`, data),
   recordDrawerTransaction: (sessionId, data) => tenantApi.post(`/reception/cash-drawer/${sessionId}/transaction/`, data),

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import {
   CreditCard,
@@ -17,6 +18,7 @@ import {
   User,
   AlertTriangle,
   Receipt,
+  UserCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -26,7 +28,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function SplitPaymentCounterPage() {
+function SplitPaymentCounterContent() {
+  const searchParams = useSearchParams();
+  const initialApptId = searchParams.get("appointment_id");
+
   const [branches, setBranches] = useState([]);
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const [appointments, setAppointments] = useState([]);
@@ -68,14 +73,23 @@ export default function SplitPaymentCounterPage() {
         date_to: format(new Date(), "yyyy-MM-dd"),
       });
       if (res.data?.data) {
-        setAppointments(res.data.data);
+        const apptsList = res.data.data;
+        setAppointments(apptsList);
+
+        // Auto select target appointment from URL query parameter
+        if (initialApptId) {
+          const match = apptsList.find((a) => a.id === initialApptId);
+          if (match) {
+            handleSelectAppointment(match);
+          }
+        }
       }
     } catch {
       toast.error("Failed to load today's appointments.");
     } finally {
       setLoadingAppts(false);
     }
-  }, [selectedBranchId]);
+  }, [selectedBranchId, initialApptId]);
 
   useEffect(() => {
     fetchAppointments();
@@ -140,6 +154,18 @@ export default function SplitPaymentCounterPage() {
 
       toast.success("Split payment processed & recorded!");
       setPaymentReceipt(res.data?.data);
+
+      // Auto check-in patient and issue token upon successful payment
+      try {
+        await receptionApi.checkInAppointment({
+          appointment_id: selectedAppt.id,
+          branch_id: selectedBranchId,
+        });
+        toast.success("Patient checked in & Visit Token issued!");
+      } catch {
+        // Payment was recorded cleanly even if already checked in
+      }
+
       fetchAppointments();
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to process split payment.");
@@ -401,5 +427,20 @@ export default function SplitPaymentCounterPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SplitPaymentCounterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-20 text-center text-default-400">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+          <p className="mt-2 text-xs font-bold">Loading payment counter...</p>
+        </div>
+      }
+    >
+      <SplitPaymentCounterContent />
+    </Suspense>
   );
 }

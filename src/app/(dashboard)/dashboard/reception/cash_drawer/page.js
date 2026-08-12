@@ -13,6 +13,7 @@ import {
   X,
   History,
   ShieldCheck,
+  FileText,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -443,25 +444,27 @@ export default function CashDrawerPage() {
                           </Badge>
                         </td>
                         <td className="p-3 text-right pr-6">
-                          {isDisputed ? (
-                            <Button
-                              size="xs"
-                              color="destructive"
-                              onClick={() => {
-                                setDisputedSession(s);
-                                setShowApproveModal(true);
-                              }}
-                              className="font-bold gap-1"
-                            >
-                              <ShieldCheck className="w-3.5 h-3.5" /> Approve Dispute
-                            </Button>
-                          ) : s.supervisor_name ? (
-                            <span className="text-[10px] text-default-500 font-bold">
-                              Approved by {s.supervisor_name}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-default-400">—</span>
-                          )}
+                          <div className="flex items-center justify-end gap-2">
+                            <Link href={`/dashboard/reception/cash_drawer/${s.id}`}>
+                              <Button size="xs" variant="outline" className="font-bold gap-1">
+                                <FileText className="w-3.5 h-3.5" /> View Details
+                              </Button>
+                            </Link>
+
+                            {isDisputed && (
+                              <Button
+                                size="xs"
+                                color="destructive"
+                                onClick={() => {
+                                  setDisputedSession(s);
+                                  setShowApproveModal(true);
+                                }}
+                                className="font-bold gap-1"
+                              >
+                                <ShieldCheck className="w-3.5 h-3.5" /> Approve Dispute
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   UserCheck,
@@ -18,6 +19,7 @@ import {
   Phone,
   Building2,
   Clock,
+  CreditCard,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -39,6 +41,7 @@ const safeFormatDate = (dateStr, pattern = "dd/MM/yyyy hh:mm a") => {
 };
 
 export default function FrontDeskCheckInPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("qr"); // qr | new | appointment
   const [branches, setBranches] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -93,31 +96,38 @@ export default function FrontDeskCheckInPage() {
     loadData();
   }, []);
 
-  // Fetch today's scheduled appointments for Tab 3
+  // Fetch today's scheduled appointments with backend search
   const fetchTodayAppts = useCallback(async () => {
     if (!selectedBranchId) return;
     setLoadingAppts(true);
     try {
-      const res = await schedulingApi.getAppointments({
+      const params = {
         branch_id: selectedBranchId,
-        date_from: format(new Date(), "yyyy-MM-dd"),
-        date_to: format(new Date(), "yyyy-MM-dd"),
-      });
+      };
+      if (apptSearch.trim()) {
+        params.search = apptSearch.trim();
+      } else {
+        params.date_from = format(new Date(), "yyyy-MM-dd");
+      }
+      const res = await schedulingApi.getAppointments(params);
       if (res.data?.data) {
         setTodayAppts(res.data.data);
       }
     } catch {
-      toast.error("Failed to load today's appointments.");
+      toast.error("Failed to load appointments.");
     } finally {
       setLoadingAppts(false);
     }
-  }, [selectedBranchId]);
+  }, [selectedBranchId, apptSearch]);
 
   useEffect(() => {
     if (activeTab === "appointment") {
-      fetchTodayAppts();
+      const timer = setTimeout(() => {
+        fetchTodayAppts();
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [activeTab, fetchTodayAppts]);
+  }, [activeTab, fetchTodayAppts, apptSearch]);
 
   // Focus QR input on mount
   useEffect(() => {
@@ -138,7 +148,7 @@ export default function FrontDeskCheckInPage() {
       });
       const token = res.data?.data;
       setIssuedToken(token);
-      toast.success(res.data?.message || "Patient checked in!");
+      toast.success(`Check-in successful! Token #${token.token_number} issued.`);
       setQrInput("");
 
       // Fetch print payload
@@ -147,13 +157,13 @@ export default function FrontDeskCheckInPage() {
         setPrintPayload(printRes.data?.data);
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || "QR Check-in failed.");
+      toast.error(err?.response?.data?.message || "QR check-in failed.");
     } finally {
       setProcessingQr(false);
     }
   };
 
-  // ── Handler 2: Fast Register New Patient Check-In ──────────
+  // ── Handler 2: Fast New Patient Check-In ──────────
   const handleNewPatientCheckIn = async (e) => {
     e.preventDefault();
     if (!newPatient.full_name.trim()) return toast.error("Patient name is required.");
@@ -161,13 +171,16 @@ export default function FrontDeskCheckInPage() {
     setRegistering(true);
     try {
       const res = await receptionApi.checkInNew({
-        ...newPatient,
+        full_name: newPatient.full_name,
+        gender: newPatient.gender,
+        phone: newPatient.phone || undefined,
+        age_years: newPatient.age_years ? parseInt(newPatient.age_years) : undefined,
+        doctor_id: newPatient.doctor_id,
         branch_id: selectedBranchId,
-        age_years: newPatient.age_years ? parseInt(newPatient.age_years) : null,
       });
       const token = res.data?.data;
       setIssuedToken(token);
-      toast.success(res.data?.message || "New patient registered & checked in!");
+      toast.success(`Walk-in registered & Token #${token.token_number} issued!`);
 
       setNewPatient({
         full_name: "",
@@ -188,11 +201,18 @@ export default function FrontDeskCheckInPage() {
     }
   };
 
-  // ── Handler 3: Appointment Check-In ──────────────────────
-  const handleAppointmentCheckIn = async (apptId) => {
+  // ── Handler 3: Appointment Check-In with Payment Enforce ─
+  const handleAppointmentCheckIn = async (appt) => {
+    // Payment Enforce Check: If unpaid, redirect to payment counter
+    if (appt.payment_status !== "paid" && appt.payment_status !== "waived") {
+      toast.error("Payment required before check-in. Redirecting to payment counter...");
+      router.push(`/dashboard/reception/payments?appointment_id=${appt.id}`);
+      return;
+    }
+
     try {
       const res = await receptionApi.checkInAppointment({
-        appointment_id: apptId,
+        appointment_id: appt.id,
         branch_id: selectedBranchId,
       });
       const token = res.data?.data;
@@ -208,17 +228,6 @@ export default function FrontDeskCheckInPage() {
       toast.error(err?.response?.data?.message || "Check-in failed.");
     }
   };
-
-  // Filtered today's appointments
-  const filteredAppts = todayAppts.filter((a) => {
-    if (!apptSearch.trim()) return true;
-    const q = apptSearch.toLowerCase();
-    return (
-      a.patient_name?.toLowerCase().includes(q) ||
-      a.patient_mrn?.toLowerCase().includes(q) ||
-      a.doctor_name?.toLowerCase().includes(q)
-    );
-  });
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
@@ -440,10 +449,10 @@ export default function FrontDeskCheckInPage() {
           <CardHeader className="border-b border-border py-4 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <CardTitle className="text-base font-bold text-default-900 flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              Today's Appointments Check-In List
+              Today's Appointments Check-In List ({todayAppts.length})
             </CardTitle>
             <Input
-              placeholder="Search patient MRN or name..."
+              placeholder="Search patient name, phone, serial #, doctor..."
               value={apptSearch}
               onChange={(e) => setApptSearch(e.target.value)}
               className="max-w-xs text-xs"
@@ -453,67 +462,99 @@ export default function FrontDeskCheckInPage() {
             {loadingAppts ? (
               <div className="py-16 text-center text-default-400">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-                <p className="mt-2 text-xs font-bold">Loading today's appointments...</p>
+                <p className="mt-2 text-xs font-bold">Searching today's appointments...</p>
               </div>
-            ) : filteredAppts.length === 0 ? (
+            ) : todayAppts.length === 0 ? (
               <div className="py-16 text-center text-default-400 text-xs space-y-2">
                 <User className="w-8 h-8 mx-auto text-default-300" />
-                <p>No appointments found matching search.</p>
+                <p>No appointments found matching search query.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-default-50 text-default-700 font-bold border-b border-border uppercase tracking-wider text-[10px]">
                     <tr>
-                      <th className="p-3 pl-6">Patient</th>
-                      <th className="p-3">Doctor</th>
-                      <th className="p-3">Time / Serial</th>
+                      <th className="p-3 pl-6">Serial #</th>
+                      <th className="p-3">Patient Info</th>
+                      <th className="p-3">Doctor & Dept</th>
+                      <th className="p-3">Slot / Time</th>
+                      <th className="p-3">Payment</th>
                       <th className="p-3">Status</th>
                       <th className="p-3 text-right pr-6">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border font-medium">
-                    {filteredAppts.map((a) => (
-                      <tr key={a.id} className="hover:bg-default-50 transition-colors">
-                        <td className="p-3 pl-6">
-                          <span className="font-bold text-default-900 block">{a.patient_name}</span>
-                          <span className="text-[10px] font-mono text-default-400">MRN: {a.patient_mrn}</span>
-                        </td>
-                        <td className="p-3 text-default-800 font-semibold">{a.doctor_name}</td>
-                        <td className="p-3 text-default-600 font-mono">
-                          {a.start_time || `Serial #${a.serial_number}`}
-                        </td>
-                        <td className="p-3">
-                          <Badge
-                            color={
-                              a.status === "checked_in"
-                                ? "success"
-                                : a.status === "in_progress"
-                                ? "primary"
-                                : "warning"
-                            }
-                            className="text-[10px] uppercase font-bold"
-                          >
-                            {a.status}
-                          </Badge>
-                        </td>
-                        <td className="p-3 text-right pr-6">
-                          {a.status === "scheduled" || a.status === "confirmed" ? (
-                            <Button
-                              size="xs"
-                              onClick={() => handleAppointmentCheckIn(a.id)}
-                              className="font-bold gap-1"
+                    {todayAppts.map((a) => {
+                      const isPaid = a.payment_status === "paid" || a.payment_status === "waived";
+                      const isCheckedIn = a.status === "checked_in" || a.status === "in_progress" || a.status === "completed";
+
+                      return (
+                        <tr key={a.id} className="hover:bg-default-50 transition-colors">
+                          <td className="p-3 pl-6 font-mono font-black text-primary text-sm">
+                            #{a.serial_number || "—"}
+                          </td>
+                          <td className="p-3">
+                            <span className="font-bold text-default-900 block">{a.patient_name}</span>
+                            <div className="flex items-center gap-2 text-[10px] text-default-500 font-mono">
+                              <span>MRN: {a.patient_mrn}</span>
+                              {a.patient_phone && <span>· Phone: {a.patient_phone}</span>}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <span className="font-bold text-default-800 block">{a.doctor_name}</span>
+                            <span className="text-[10px] text-default-400 font-medium">
+                              {a.doctor_specialization || a.department_name || "General OPD"}
+                            </span>
+                          </td>
+                          <td className="p-3 text-default-600 font-mono">
+                            <div>{safeFormatDate(a.appointment_date, "dd/MM/yyyy")}</div>
+                            <div className="text-[10px] font-bold text-indigo-600">
+                              {a.start_time || `Serial #${a.serial_number}`}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <Badge
+                              color={isPaid ? "success" : "destructive"}
+                              className="text-[9px] uppercase font-extrabold px-2"
                             >
-                              <UserCheck className="w-3.5 h-3.5" /> Check In & Issue Token
-                            </Button>
-                          ) : (
-                            <Badge color="success" className="text-[10px] font-bold">
-                              Already Checked In
+                              {a.payment_status || "UNPAID"}
                             </Badge>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="p-3">
+                            <Badge
+                              color={isCheckedIn ? "success" : "warning"}
+                              className="text-[10px] uppercase font-bold"
+                            >
+                              {a.status}
+                            </Badge>
+                          </td>
+                          <td className="p-3 text-right pr-6">
+                            {isCheckedIn ? (
+                              <Badge color="success" className="text-[10px] font-bold">
+                                Already Checked In
+                              </Badge>
+                            ) : !isPaid ? (
+                              <Button
+                                size="xs"
+                                color="warning"
+                                onClick={() => router.push(`/dashboard/reception/payments?appointment_id=${a.id}`)}
+                                className="font-bold gap-1"
+                              >
+                                <CreditCard className="w-3.5 h-3.5" /> Pay & Check In
+                              </Button>
+                            ) : (
+                              <Button
+                                size="xs"
+                                onClick={() => handleAppointmentCheckIn(a)}
+                                className="font-bold gap-1"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" /> Check In & Issue Token
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
