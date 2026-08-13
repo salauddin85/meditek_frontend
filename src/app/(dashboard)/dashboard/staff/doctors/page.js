@@ -46,6 +46,7 @@ function DoctorFormModal({ doctor, specialties, branches, onClose, onSuccess }) 
     gender: doctor?.gender || "Male",
     phone: doctor?.phone || "",
     email: doctor?.email || "",
+    profile_image_s3_key: doctor?.profile_image_s3_key || "",
     consult_fee: doctor?.consult_fee || "500",
     revenue_share_percent: doctor?.revenue_share_percent || "0",
     default_session_duration: doctor?.default_session_duration || 15,
@@ -55,6 +56,17 @@ function DoctorFormModal({ doctor, specialties, branches, onClose, onSuccess }) 
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image file size must be less than 5MB.");
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm((f) => ({ ...f, profile_image_s3_key: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -132,6 +144,29 @@ function DoctorFormModal({ doctor, specialties, branches, onClose, onSuccess }) 
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {/* Doctor Profile Photo Upload */}
+          <div className="space-y-1.5 bg-default-50 p-3 rounded-xl border border-border">
+            <label className="block text-xs font-bold text-default-700">Doctor Profile Photo (Optional)</label>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+                {form.profile_image_s3_key ? (
+                  <img src={form.profile_image_s3_key} alt="Doctor" className="w-full h-full object-cover" />
+                ) : (
+                  <Stethoscope className="w-6 h-6 text-primary" />
+                )}
+              </div>
+              <div className="flex-1 space-y-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="block w-full text-xs text-default-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                />
+                <p className="text-[10px] text-default-400">Upload doctor avatar photo (Max 5MB). Leave empty for default icon.</p>
+              </div>
+            </div>
+          </div>
+
           {/* Row 1: Full Name & Bangla Name */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -140,7 +175,7 @@ function DoctorFormModal({ doctor, specialties, branches, onClose, onSuccess }) 
                 type="text"
                 value={form.full_name}
                 onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
-                placeholder="Dr. Mohammad Ali"
+                placeholder="Mohammad Najmul or Dr. Mohammad Najmul"
                 className={`w-full h-9 px-3 rounded-lg border text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 ${
                   errors.full_name ? "border-destructive" : "border-input"
                 }`}
@@ -433,7 +468,7 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
             </div>
             <div>
               <h2 className="text-xl font-bold text-default-900">
-                Schedules for {formatDoctorName(doctor.full_name)}
+                Schedules for {doctor.full_name}
               </h2>
               <p className="text-xs text-default-500 mt-0.5">
                 Configure weekly consultation templates & session limits
@@ -574,7 +609,7 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
               </div>
             ) : schedules.length === 0 ? (
               <div className="py-8 text-center text-default-400 text-sm border border-dashed border-border rounded-xl">
-                No schedule templates set yet for {formatDoctorName(doctor.full_name)}.
+                No schedule templates set yet for {doctor.full_name}.
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2">
@@ -636,6 +671,7 @@ export default function DoctorsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [schedulingDoctor, setSchedulingDoctor] = useState(null);
+  const [previewImageDoc, setPreviewImageDoc] = useState(null);
   const [isPending, startTransition] = useTransition();
 
   const fetchDoctors = async () => {
@@ -828,12 +864,24 @@ export default function DoctorsPage() {
                 {/* Doctor Card Top */}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex items-center justify-center border border-primary/20">
-                      {doc.full_name?.charAt(0)?.toUpperCase()}
+                    <div
+                      onClick={() => doc.profile_image_s3_key && setPreviewImageDoc(doc)}
+                      className={`w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-lg flex items-center justify-center border border-primary/20 overflow-hidden shrink-0 transition-all ${
+                        doc.profile_image_s3_key
+                          ? "cursor-pointer hover:ring-4 hover:ring-primary/30 hover:scale-105"
+                          : ""
+                      }`}
+                      title={doc.profile_image_s3_key ? "Click to view full image preview" : ""}
+                    >
+                      {doc.profile_image_s3_key ? (
+                        <img src={doc.profile_image_s3_key} alt={doc.full_name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Stethoscope className="w-6 h-6 text-primary" />
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold text-default-900 text-base leading-tight">
-                        {formatDoctorName(doc.full_name)}
+                        {doc.full_name}
                       </h3>
                       {doc.designation && (
                         <p className="text-xs font-medium text-primary mt-0.5">{doc.designation}</p>
@@ -926,13 +974,42 @@ export default function DoctorsPage() {
         />
       )}
 
-      {/* Schedule Manager Modal */}
-      {schedulingDoctor && (
-        <DoctorScheduleModal
-          doctor={schedulingDoctor}
-          branches={branches}
-          onClose={() => setSchedulingDoctor(null)}
-        />
+      {/* Doctor Photo Lightbox Modal */}
+      {previewImageDoc && (
+        <div
+          onClick={() => setPreviewImageDoc(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-w-xl w-full relative space-y-4 p-5"
+          >
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h3 className="font-extrabold text-default-900 text-lg">
+                  {previewImageDoc.full_name}
+                </h3>
+                {previewImageDoc.designation && (
+                  <p className="text-xs font-semibold text-primary">{previewImageDoc.designation}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setPreviewImageDoc(null)}
+                className="p-1.5 rounded-full hover:bg-default-100 transition text-default-500"
+              >
+                <Icon icon="heroicons:x-mark" className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="rounded-xl overflow-hidden bg-black/5 flex items-center justify-center max-h-[75vh] p-2">
+              <img
+                src={previewImageDoc.profile_image_s3_key}
+                alt={previewImageDoc.full_name}
+                className="w-full h-auto max-h-[70vh] object-contain rounded-lg shadow-md"
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

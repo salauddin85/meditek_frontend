@@ -20,6 +20,7 @@ import {
   Building2,
   Clock,
   CreditCard,
+  AlertTriangle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -38,6 +39,15 @@ const safeFormatDate = (dateStr, pattern = "dd/MM/yyyy hh:mm a") => {
   } catch {
     return "—";
   }
+};
+
+const ensureArray = (resData) => {
+  if (!resData) return [];
+  if (Array.isArray(resData)) return resData;
+  if (Array.isArray(resData.data)) return resData.data;
+  if (Array.isArray(resData.results)) return resData.results;
+  if (Array.isArray(resData.data?.results)) return resData.data.results;
+  return [];
 };
 
 export default function FrontDeskCheckInPage() {
@@ -59,8 +69,13 @@ export default function FrontDeskCheckInPage() {
     phone: "",
     age_years: "",
     doctor_id: "",
+    appointment_date: format(new Date(), "yyyy-MM-dd"),
+    selected_slot_id: "",
+    is_overbook: false,
   });
   const [registering, setRegistering] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Tab 3: Today's Scheduled Appointments state
   const [todayAppts, setTodayAppts] = useState([]);
@@ -76,18 +91,23 @@ export default function FrontDeskCheckInPage() {
     async function loadData() {
       try {
         const [brRes, docRes] = await Promise.all([
-          branchesApi.getBranches(),
-          staffApi.getDoctors(),
+          branchesApi.getBranches().catch(() => ({ data: [] })),
+          staffApi.getDoctors().catch(() => ({ data: [] })),
         ]);
-        if (brRes.data?.data?.length > 0) {
-          setBranches(brRes.data.data);
-          setSelectedBranchId(brRes.data.data[0].id);
+        const branchList = ensureArray(brRes.data);
+        const doctorList = ensureArray(docRes.data);
+
+        setBranches(branchList);
+        setDoctors(doctorList);
+
+        if (branchList.length > 0) {
+          setSelectedBranchId(branchList[0].id);
         }
-        if (docRes.data?.data) {
-          setDoctors(docRes.data.data);
-          if (docRes.data.data.length > 0) {
-            setNewPatient((prev) => ({ ...prev, doctor_id: docRes.data.data[0].id }));
-          }
+        if (doctorList.length > 0) {
+          setNewPatient((prev) => ({
+            ...prev,
+            doctor_id: prev.doctor_id || doctorList[0].id,
+          }));
         }
       } catch {
         toast.error("Failed to load initial reception data.");
@@ -95,6 +115,54 @@ export default function FrontDeskCheckInPage() {
     }
     loadData();
   }, []);
+
+  // Fetch available slots when doctor or date changes in Tab 2
+  const fetchDoctorSlots = useCallback(async () => {
+    if (!newPatient.doctor_id || !selectedBranchId || !newPatient.appointment_date) return;
+    setLoadingSlots(true);
+    try {
+      const res = await schedulingApi.getSlots({
+        doctor_id: newPatient.doctor_id,
+        branch_id: selectedBranchId,
+        slot_date: newPatient.appointment_date,
+      });
+      const slots = ensureArray(res.data);
+      setAvailableSlots(slots);
+
+      if (slots.length > 0) {
+        const firstAvailable = slots.find((s) => s && s.status === "available");
+        if (firstAvailable) {
+          setNewPatient((prev) => ({
+            ...prev,
+            selected_slot_id: firstAvailable.id,
+            is_overbook: false,
+          }));
+        } else {
+          setNewPatient((prev) => ({
+            ...prev,
+            selected_slot_id: "",
+            is_overbook: true,
+          }));
+        }
+      } else {
+        setNewPatient((prev) => ({
+          ...prev,
+          selected_slot_id: "",
+          is_overbook: true,
+        }));
+      }
+    } catch {
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, [newPatient.doctor_id, selectedBranchId, newPatient.appointment_date]);
+
+  useEffect(() => {
+    if (activeTab === "new") {
+      fetchDoctorSlots();
+    }
+  }, [activeTab, fetchDoctorSlots]);
 
   // Fetch today's scheduled appointments with backend search
   const fetchTodayAppts = useCallback(async () => {
@@ -110,9 +178,8 @@ export default function FrontDeskCheckInPage() {
         params.date_from = format(new Date(), "yyyy-MM-dd");
       }
       const res = await schedulingApi.getAppointments(params);
-      if (res.data?.data) {
-        setTodayAppts(res.data.data);
-      }
+      const apptList = ensureArray(res.data);
+      setTodayAppts(apptList);
     } catch {
       toast.error("Failed to load appointments.");
     } finally {
@@ -148,10 +215,9 @@ export default function FrontDeskCheckInPage() {
       });
       const token = res.data?.data;
       setIssuedToken(token);
-      toast.success(`Check-in successful! Token #${token.token_number} issued.`);
+      toast.success(`Check-in successful! Token #${token?.token_number || ""} issued.`);
       setQrInput("");
 
-      // Fetch print payload
       if (token?.id) {
         const printRes = await receptionApi.getPrintPayload(token.id);
         setPrintPayload(printRes.data?.data);
@@ -163,7 +229,7 @@ export default function FrontDeskCheckInPage() {
     }
   };
 
-  // ── Handler 2: Fast New Patient Check-In ──────────
+  // ── Handler 2: Fast New Patient Check-In & Forward to Payment Counter ──────
   const handleNewPatientCheckIn = async (e) => {
     e.preventDefault();
     if (!newPatient.full_name.trim()) return toast.error("Patient name is required.");
@@ -177,22 +243,20 @@ export default function FrontDeskCheckInPage() {
         age_years: newPatient.age_years ? parseInt(newPatient.age_years) : undefined,
         doctor_id: newPatient.doctor_id,
         branch_id: selectedBranchId,
-      });
-      const token = res.data?.data;
-      setIssuedToken(token);
-      toast.success(`Walk-in registered & Token #${token.token_number} issued!`);
-
-      setNewPatient({
-        full_name: "",
-        gender: "male",
-        phone: "",
-        age_years: "",
-        doctor_id: doctors[0]?.id || "",
+        appointment_date: newPatient.appointment_date,
+        slot_id: newPatient.selected_slot_id || undefined,
+        is_overbook: newPatient.is_overbook,
       });
 
-      if (token?.id) {
-        const printRes = await receptionApi.getPrintPayload(token.id);
-        setPrintPayload(printRes.data?.data);
+      const resData = res.data?.data;
+      const apptId = resData?.appointment_id || resData?.appointment;
+
+      toast.success("Walk-in patient registered! Redirecting to payment counter...");
+
+      if (apptId) {
+        router.push(`/dashboard/reception/payments?appointment_id=${apptId}`);
+      } else {
+        toast.success("Registration complete.");
       }
     } catch (err) {
       toast.error(err?.response?.data?.message || "New patient check-in failed.");
@@ -203,7 +267,6 @@ export default function FrontDeskCheckInPage() {
 
   // ── Handler 3: Appointment Check-In with Payment Enforce ─
   const handleAppointmentCheckIn = async (appt) => {
-    // Payment Enforce Check: If unpaid, redirect to payment counter
     if (appt.payment_status !== "paid" && appt.payment_status !== "waived") {
       toast.error("Payment required before check-in. Redirecting to payment counter...");
       router.push(`/dashboard/reception/payments?appointment_id=${appt.id}`);
@@ -238,7 +301,7 @@ export default function FrontDeskCheckInPage() {
         <ArrowLeft className="w-4 h-4" /> Back to Reception Command Center
       </Link>
 
-      {/* Top Header */}
+      {/* Header & Branch Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <h1 className="text-2xl font-extrabold text-default-900 flex items-center gap-2">
@@ -255,7 +318,7 @@ export default function FrontDeskCheckInPage() {
           onChange={(e) => setSelectedBranchId(e.target.value)}
           className="h-10 px-3 rounded-lg border border-default-200 bg-background text-xs font-bold text-default-800"
         >
-          {branches.map((b) => (
+          {(branches || []).map((b) => (
             <option key={b.id} value={b.id}>
               {b.name} ({b.code})
             </option>
@@ -266,6 +329,7 @@ export default function FrontDeskCheckInPage() {
       {/* Check-In Tabs Header */}
       <div className="flex border-b border-border gap-2 bg-default-50 p-1 rounded-xl">
         <button
+          type="button"
           onClick={() => setActiveTab("qr")}
           className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
             activeTab === "qr"
@@ -278,6 +342,7 @@ export default function FrontDeskCheckInPage() {
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab("new")}
           className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
             activeTab === "new"
@@ -290,6 +355,7 @@ export default function FrontDeskCheckInPage() {
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab("appointment")}
           className={`flex-1 py-2.5 px-4 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
             activeTab === "appointment"
@@ -323,23 +389,22 @@ export default function FrontDeskCheckInPage() {
                     placeholder="e.g. BR-01-2026-00004 or Scan QR..."
                     value={qrInput}
                     onChange={(e) => setQrInput(e.target.value)}
-                    className="h-14 text-lg font-mono pl-12 pr-32 border-2 border-primary/40 focus:border-primary"
+                    className="h-12 text-base pl-10 font-mono"
                   />
-                  <QrCode className="w-6 h-6 text-primary absolute left-4 top-4" />
-                  <Button
-                    type="submit"
-                    disabled={processingQr || !qrInput.trim()}
-                    className="absolute right-2 top-2 h-10 px-6 font-extrabold gap-2"
-                  >
-                    {processingQr ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <UserCheck className="w-4 h-4" /> Check In
-                      </>
-                    )}
-                  </Button>
+                  <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-default-400" />
                 </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={processingQr} className="h-11 px-8 font-bold gap-2">
+                  {processingQr ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <UserCheck className="w-4 h-4" /> Check-In Patient
+                    </>
+                  )}
+                </Button>
               </div>
             </form>
 
@@ -410,7 +475,7 @@ export default function FrontDeskCheckInPage() {
                   />
                 </div>
 
-                <div className="md:col-span-2 space-y-1.5">
+                <div className="space-y-1.5">
                   <label className="text-xs font-bold text-default-700">Select Consulting Doctor *</label>
                   <select
                     value={newPatient.doctor_id}
@@ -418,12 +483,104 @@ export default function FrontDeskCheckInPage() {
                     className="w-full h-10 px-3 rounded-lg border border-default-200 bg-background text-sm font-medium"
                     required
                   >
-                    {doctors.map((d) => (
+                    {(doctors || []).map((d) => (
                       <option key={d.id} value={d.id}>
-                        Dr. {d.full_name} ({d.designation || "Doctor"}) — Fee: ৳{d.consult_fee}
+                        {d.full_name} ({d.designation || "Doctor"}) — Fee: ৳{d.consult_fee}
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-default-700">Appointment Date *</label>
+                  <Input
+                    type="date"
+                    value={newPatient.appointment_date}
+                    onChange={(e) => setNewPatient({ ...newPatient, appointment_date: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-default-700">Available Appointment Serials</label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewPatient((prev) => ({
+                          ...prev,
+                          is_overbook: !prev.is_overbook,
+                          selected_slot_id: !prev.is_overbook ? "" : prev.selected_slot_id,
+                        }))
+                      }
+                      className={`text-xs font-bold px-3 py-1 rounded-lg border transition ${
+                        newPatient.is_overbook
+                          ? "bg-amber-500 text-white border-amber-600 shadow"
+                          : "bg-default-100 text-default-700 hover:bg-default-200 border-default-300"
+                      }`}
+                    >
+                      {newPatient.is_overbook ? "⚡ Overbook Active" : "⚡ Overbook Patient"}
+                    </button>
+                  </div>
+
+                  {loadingSlots ? (
+                    <div className="py-6 text-center text-default-400">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary" />
+                      <p className="text-xs mt-1">Loading available serial slots...</p>
+                    </div>
+                  ) : newPatient.is_overbook ? (
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      Overbook Mode Active: Patient will be issued an emergency overbooked serial.
+                    </div>
+                  ) : (availableSlots || []).length === 0 ? (
+                    <div className="p-3 bg-default-50 border border-border rounded-xl text-xs text-default-500 text-center space-y-1">
+                      <p>No regular serial slots found for this date.</p>
+                      <button
+                        type="button"
+                        onClick={() => setNewPatient((prev) => ({ ...prev, is_overbook: true }))}
+                        className="text-primary font-bold hover:underline"
+                      >
+                        Click here to Overbook Patient
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                      {(availableSlots || []).map((s, idx) => {
+                        if (!s) return null;
+                        const isSelected = newPatient.selected_slot_id === s.id;
+                        const isAvailable = s.status === "available";
+                        return (
+                          <button
+                            key={s.id || idx}
+                            type="button"
+                            disabled={!isAvailable}
+                            onClick={() =>
+                              setNewPatient((prev) => ({
+                                ...prev,
+                                selected_slot_id: s.id,
+                                is_overbook: false,
+                              }))
+                            }
+                            className={`p-2 rounded-lg border text-center transition ${
+                              isSelected
+                                ? "bg-primary text-primary-foreground border-primary font-bold shadow-md"
+                                : isAvailable
+                                ? "bg-background hover:bg-default-50 text-default-800 border-default-200"
+                                : "bg-default-100 text-default-400 border-default-200 opacity-60 cursor-not-allowed"
+                            }`}
+                          >
+                            <span className="block text-xs font-mono font-bold">
+                              #{s.serial_number || idx + 1}
+                            </span>
+                            <span className="block text-[9px] uppercase tracking-tighter">
+                              {s.status || "available"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -433,7 +590,7 @@ export default function FrontDeskCheckInPage() {
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      <UserCheck className="w-4 h-4" /> Register & Issue Token
+                      <UserCheck className="w-4 h-4" /> Register & Forward to Payment Counter
                     </>
                   )}
                 </Button>
@@ -449,7 +606,7 @@ export default function FrontDeskCheckInPage() {
           <CardHeader className="border-b border-border py-4 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <CardTitle className="text-base font-bold text-default-900 flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              Today's Appointments Check-In List ({todayAppts.length})
+              Today's Appointments Check-In List ({(todayAppts || []).length})
             </CardTitle>
             <Input
               placeholder="Search patient name, phone, serial #, doctor..."
@@ -464,7 +621,7 @@ export default function FrontDeskCheckInPage() {
                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
                 <p className="mt-2 text-xs font-bold">Searching today's appointments...</p>
               </div>
-            ) : todayAppts.length === 0 ? (
+            ) : (todayAppts || []).length === 0 ? (
               <div className="py-16 text-center text-default-400 text-xs space-y-2">
                 <User className="w-8 h-8 mx-auto text-default-300" />
                 <p>No appointments found matching search query.</p>
@@ -484,7 +641,8 @@ export default function FrontDeskCheckInPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border font-medium">
-                    {todayAppts.map((a) => {
+                    {(todayAppts || []).map((a) => {
+                      if (!a) return null;
                       const isPaid = a.payment_status === "paid" || a.payment_status === "waived";
                       const isCheckedIn = a.status === "checked_in" || a.status === "in_progress" || a.status === "completed";
 
@@ -573,6 +731,7 @@ export default function FrontDeskCheckInPage() {
                 Visit Token Issued
               </h3>
               <button
+                type="button"
                 onClick={() => {
                   setIssuedToken(null);
                   setPrintPayload(null);
@@ -622,7 +781,7 @@ export default function FrontDeskCheckInPage() {
                 }}
                 className="flex-1 font-bold gap-2"
               >
-                <Printer className="w-4 h-4" /> Print Thermal Slip
+                <Printer className="w-4 h-4" /> Print Receipt
               </Button>
             </div>
           </div>

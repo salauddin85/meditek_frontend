@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   Calendar,
@@ -44,6 +45,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AppointmentsListPage() {
+  const router = useRouter();
   const [appointments, setAppointments] = useState([]);
   const [branches, setBranches] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -92,9 +94,18 @@ export default function AppointmentsListPage() {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  const handleUpdateStatus = async (apptId, newStatus) => {
+  const handleUpdateStatus = async (appt, newStatus) => {
+    if (newStatus === "checked_in") {
+      const isPaid = appt.payment_status === "paid" || appt.payment_status === "waived";
+      if (!isPaid) {
+        toast.error("Payment required before check-in. Redirecting to payment counter...");
+        router.push(`/dashboard/reception/payments?appointment_id=${appt.id}`);
+        return;
+      }
+    }
+
     try {
-      await schedulingApi.updateAppointmentStatus(apptId, { status: newStatus });
+      await schedulingApi.updateAppointmentStatus(appt.id, { status: newStatus });
       toast.success(`Appointment status updated to '${newStatus}'.`);
       fetchAppointments();
     } catch (err) {
@@ -304,7 +315,7 @@ export default function AppointmentsListPage() {
                             size="xs"
                             variant="soft"
                             color="warning"
-                            onClick={() => handleUpdateStatus(appt.id, "checked_in")}
+                            onClick={() => handleUpdateStatus(appt, "checked_in")}
                             className="font-bold gap-1"
                           >
                             <UserCheck className="w-3 h-3" />
