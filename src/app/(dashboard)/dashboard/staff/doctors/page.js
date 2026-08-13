@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition,useCallback } from "react";
 import { Icon } from "@iconify/react";
 import {
   Loader2,
@@ -389,7 +389,7 @@ const formatDoctorName = (name) => {
 };
 
 // Modal: Doctor Schedule Templates Manager
-function DoctorScheduleModal({ doctor, branches, onClose }) {
+function DoctorScheduleModal({ doctor, branches = [], onClose }) {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -404,6 +404,12 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
     max_overbook: 2,
   });
 
+  useEffect(() => {
+    if (Array.isArray(branches) && branches.length > 0) {
+      setForm((f) => (f.branch_id ? f : { ...f, branch_id: branches[0].id }));
+    }
+  }, [branches]);
+
   const DAYS = [
     { value: 0, label: "Monday" },
     { value: 1, label: "Tuesday" },
@@ -414,21 +420,30 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
     { value: 6, label: "Sunday" },
   ];
 
-  const fetchSchedules = async () => {
+  const fetchSchedules = useCallback(async () => {
+    if (!doctor?.id) return;
     setLoading(true);
     try {
       const res = await staffApi.getDoctorSchedules(doctor.id);
-      setSchedules(res.data.data || []);
+      const raw = res.data?.data;
+      const list = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.results)
+        ? raw.results
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+      setSchedules(list);
     } catch {
       toast.error("Failed to load doctor schedules.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [doctor?.id]);
 
   useEffect(() => {
     fetchSchedules();
-  }, [doctor.id]);
+  }, [fetchSchedules]);
 
   const handleAddSchedule = async (e) => {
     e.preventDefault();
@@ -447,7 +462,7 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
       setSaving(false);
     }
   };
-
+  
   const handleDeleteSchedule = async (tid) => {
     try {
       await staffApi.deleteDoctorSchedule(doctor.id, tid);
@@ -498,9 +513,9 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
                   onChange={(e) => setForm((f) => ({ ...f, branch_id: e.target.value }))}
                   className="w-full h-8 px-2 rounded-md border border-input bg-background text-xs"
                 >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
+                  {(branches || []).map((b) => (
+                    <option key={b?.id || b?.name} value={b?.id}>
+                      {b?.name}
                     </option>
                   ))}
                 </select>
@@ -607,17 +622,18 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
               <div className="py-8 text-center">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
               </div>
-            ) : schedules.length === 0 ? (
+            ) : (schedules || []).length === 0 ? (
               <div className="py-8 text-center text-default-400 text-sm border border-dashed border-border rounded-xl">
-                No schedule templates set yet for {doctor.full_name}.
+                No schedule templates set yet for {doctor?.full_name || "Doctor"}.
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2">
-                {schedules.map((s) => {
-                  const dayName = DAYS.find((d) => d.value === s.day_of_week)?.label || "Day " + s.day_of_week;
+                {(schedules || []).map((s, idx) => {
+                  if (!s) return null;
+                  const dayName = DAYS.find((d) => d.value === s.day_of_week)?.label || "Day " + (s.day_of_week ?? "");
                   return (
                     <div
-                      key={s.id}
+                      key={s.id || idx}
                       className="p-3 border border-border rounded-xl bg-card flex items-center justify-between hover:border-primary/30 transition"
                     >
                       <div className="flex items-center gap-3">
@@ -628,15 +644,15 @@ function DoctorScheduleModal({ doctor, branches, onClose }) {
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-sm text-default-900">{dayName}</span>
                             <span className="text-xs px-2 py-0.5 rounded bg-default-100 text-default-600 font-mono">
-                              {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}
+                              {(s.start_time || "").slice(0, 5)} - {(s.end_time || "").slice(0, 5)}
                             </span>
                             <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-primary/10 text-primary">
-                              {s.session_type}
+                              {s.session_type || "timed"}
                             </span>
                           </div>
                           <p className="text-xs text-default-500 mt-0.5">
-                            Branch: <strong className="text-default-700">{s.branch_name}</strong> |{" "}
-                            {s.session_type === "timed" ? `${s.slot_duration_mins}m slots` : `Max ${s.max_serials} serials`}
+                            Branch: <strong className="text-default-700">{s.branch_name || "Primary Branch"}</strong> |{" "}
+                            {s.session_type === "timed" ? `${s.slot_duration_mins || 15}m slots` : `Max ${s.max_serials || 20} serials`}
                           </p>
                         </div>
                       </div>
@@ -971,6 +987,15 @@ export default function DoctorsPage() {
             setEditingDoctor(null);
           }}
           onSuccess={fetchDoctors}
+        />
+      )}
+
+      {/* Schedule Manager Modal */}
+      {schedulingDoctor && (
+        <DoctorScheduleModal
+          doctor={schedulingDoctor}
+          branches={branches}
+          onClose={() => setSchedulingDoctor(null)}
         />
       )}
 
