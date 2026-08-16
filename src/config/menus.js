@@ -1,4 +1,4 @@
-import { DashBoard, Settings, Users } from "@/components/svg";
+import { DashBoard, Settings, Users, Bell } from "@/components/svg";
 
 export const tenantMenusConfig = {
   mainNav: [
@@ -60,6 +60,32 @@ export const tenantMenusConfig = {
         {
           title: "Split Payment Counter",
           href: "/dashboard/reception/payments",
+        },
+      ],
+    },
+    {
+      title: "Notification Engine",
+      icon: Bell,
+      child: [
+        {
+          title: "Notification Hub",
+          href: "/dashboard/notifications",
+        },
+        {
+          title: "Templates Manager",
+          href: "/dashboard/notifications/templates",
+        },
+        {
+          title: "Delivery Logs",
+          href: "/dashboard/notifications/logs",
+        },
+        {
+          title: "User Preferences",
+          href: "/dashboard/notifications/preferences",
+        },
+        {
+          title: "SMS Segment Preview",
+          href: "/dashboard/notifications/calculator",
         },
       ],
     },
@@ -156,6 +182,32 @@ export const tenantMenusConfig = {
           {
             title: "Employee Directory",
             href: "/dashboard/staff/employees",
+          },
+        ],
+      },
+      {
+        title: "Notification Engine",
+        icon: Bell,
+        child: [
+          {
+            title: "Notification Hub",
+            href: "/dashboard/notifications",
+          },
+          {
+            title: "Templates Manager",
+            href: "/dashboard/notifications/templates",
+          },
+          {
+            title: "Delivery Logs",
+            href: "/dashboard/notifications/logs",
+          },
+          {
+            title: "User Preferences",
+            href: "/dashboard/notifications/preferences",
+          },
+          {
+            title: "SMS Segment Preview",
+            href: "/dashboard/notifications/calculator",
           },
         ],
       },
@@ -293,6 +345,32 @@ export const tenantMenusConfig = {
           {
             title: "Employee Directory",
             href: "/dashboard/staff/employees",
+          },
+        ],
+      },
+      {
+        title: "Notification Engine",
+        icon: Bell,
+        child: [
+          {
+            title: "Notification Hub",
+            href: "/dashboard/notifications",
+          },
+          {
+            title: "Templates Manager",
+            href: "/dashboard/notifications/templates",
+          },
+          {
+            title: "Delivery Logs",
+            href: "/dashboard/notifications/logs",
+          },
+          {
+            title: "User Preferences",
+            href: "/dashboard/notifications/preferences",
+          },
+          {
+            title: "SMS Segment Preview",
+            href: "/dashboard/notifications/calculator",
           },
         ],
       },

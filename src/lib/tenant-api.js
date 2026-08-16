@@ -243,6 +243,25 @@ export const receptionApi = {
   getPaymentSplits: (params) => tenantApi.get("/reception/payments/", { params }),
 };
 
+// ── Notification Engine API functions ──────────────────────────────────────────
+export const notificationsApi = {
+  getTemplates: (params) => tenantApi.get("/notifications/templates/", { params }),
+  getTemplate: (id) => tenantApi.get(`/notifications/templates/${id}/`),
+  createTemplate: (data) => tenantApi.post("/notifications/templates/", data),
+  updateTemplate: (id, data) => tenantApi.patch(`/notifications/templates/${id}/`, data),
+  deleteTemplate: (id) => tenantApi.delete(`/notifications/templates/${id}/`),
+  getLogs: (params) => tenantApi.get("/notifications/logs/", { params }),
+  retryLog: (id) => tenantApi.post(`/notifications/logs/${id}/retry/`),
+  getPreferences: () => tenantApi.get("/notifications/preferences/"),
+  updatePreferences: (data) => tenantApi.patch("/notifications/preferences/", data),
+  getInbox: (params) => tenantApi.get("/notifications/inbox/", { params }),
+  markInboxRead: (id) => tenantApi.post(`/notifications/inbox/${id}/read/`),
+  markInboxReadAll: () => tenantApi.post("/notifications/inbox/read-all/"),
+  sendTest: (data) => tenantApi.post("/notifications/send-test/", data),
+  previewSegments: (data) => tenantApi.post("/notifications/preview-segments/", data),
+};
+
+
 
 
 
