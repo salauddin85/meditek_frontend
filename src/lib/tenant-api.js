@@ -261,6 +261,52 @@ export const notificationsApi = {
   previewSegments: (data) => tenantApi.post("/notifications/preview-segments/", data),
 };
 
+// ── Clinical / EMR API functions (MODULE 10) ──────────────────────────────────────────
+export const clinicalApi = {
+  // Encounters
+  getEncounters: (params) => tenantApi.get("/clinical/encounters/", { params }),
+  getEncounter: (id) => tenantApi.get(`/clinical/encounters/${id}/`),
+  createEncounter: (data) => tenantApi.post("/clinical/encounters/", data),
+  updateEncounter: (id, data) => tenantApi.patch(`/clinical/encounters/${id}/`, data),
+  closeEncounter: (id) => tenantApi.post(`/clinical/encounters/${id}/close/`),
+
+  // Clinical Notes
+  getNotes: (encounterId) => tenantApi.get(`/clinical/encounters/${encounterId}/notes/`),
+  addNote: (encounterId, data) => tenantApi.post(`/clinical/encounters/${encounterId}/notes/`, data),
+
+  // Vitals
+  recordVitals: (encounterId, data) => tenantApi.post(`/clinical/encounters/${encounterId}/vitals/`, data),
+  getPatientVitals: (patientId, params) => tenantApi.get(`/clinical/patients/${patientId}/vitals/`, { params }),
+
+  // Diagnoses
+  getDiagnoses: (encounterId) => tenantApi.get(`/clinical/encounters/${encounterId}/diagnoses/`),
+  addDiagnosis: (encounterId, data) => tenantApi.post(`/clinical/encounters/${encounterId}/diagnoses/`, data),
+
+  // Attachments
+  getAttachments: (encounterId) => tenantApi.get(`/clinical/encounters/${encounterId}/attachments/`),
+  uploadAttachment: (encounterId, formData) =>
+    tenantApi.post(`/clinical/encounters/${encounterId}/attachments/`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  // Allergies
+  getAllergies: (patientId) => tenantApi.get(`/clinical/patients/${patientId}/allergies/`),
+  addAllergy: (patientId, data) => tenantApi.post(`/clinical/patients/${patientId}/allergies/`, data),
+  updateAllergy: (patientId, allergyId, data) =>
+    tenantApi.patch(`/clinical/patients/${patientId}/allergies/${allergyId}/`, data),
+  deleteAllergy: (patientId, allergyId) =>
+    tenantApi.delete(`/clinical/patients/${patientId}/allergies/${allergyId}/`),
+
+  // Patient Clinical Timeline
+  getTimeline: (patientId, params) => tenantApi.get(`/clinical/patients/${patientId}/timeline/`, { params }),
+
+  // ICD-10 Search
+  searchICD10: (q, limit) => tenantApi.get("/clinical/icd10/search/", { params: { q, limit } }),
+
+  // Break-Glass Emergency Access
+  breakGlassAccess: (patientId, data) => tenantApi.post(`/clinical/break-glass/${patientId}/`, data),
+};
+
 
 
 

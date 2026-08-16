@@ -64,6 +64,16 @@ export const tenantMenusConfig = {
       ],
     },
     {
+      title: "Clinical / EMR",
+      icon: Users,
+      child: [
+        {
+          title: "Clinical Workspace",
+          href: "/dashboard/clinical",
+        },
+      ],
+    },
+    {
       title: "Notification Engine",
       icon: Bell,
       child: [
@@ -168,6 +178,16 @@ export const tenantMenusConfig = {
           {
             title: "Merge Records",
             href: "/dashboard/patients/merge",
+          },
+        ],
+      },
+      {
+        title: "Clinical / EMR",
+        icon: Users,
+        child: [
+          {
+            title: "Clinical Workspace",
+            href: "/dashboard/clinical",
           },
         ],
       },
@@ -331,6 +351,16 @@ export const tenantMenusConfig = {
           {
             title: "Merge Records",
             href: "/dashboard/patients/merge",
+          },
+        ],
+      },
+      {
+        title: "Clinical / EMR",
+        icon: Users,
+        child: [
+          {
+            title: "Clinical Workspace",
+            href: "/dashboard/clinical",
           },
         ],
       },
