@@ -192,6 +192,28 @@ export const tenantMenusConfig = {
         ],
       },
       {
+        title: "Prescriptions",
+        icon: Users,
+        child: [
+          {
+            title: "Prescription List",
+            href: "/dashboard/prescriptions",
+          },
+          {
+            title: "Write Prescription",
+            href: "/dashboard/prescriptions/new",
+          },
+          {
+            title: "Drug Master Registry",
+            href: "/dashboard/prescriptions/drugs",
+          },
+          {
+            title: "Prescription Templates",
+            href: "/dashboard/prescriptions/templates",
+          },
+        ],
+      },
+      {
         title: "Staff & Doctors",
         icon: Users,
         child: [
@@ -361,6 +383,24 @@ export const tenantMenusConfig = {
           {
             title: "Clinical Workspace",
             href: "/dashboard/clinical",
+          },
+        ],
+      },
+      {
+        title: "Prescriptions",
+        icon: Users,
+        child: [
+          {
+            title: "Prescription List",
+            href: "/dashboard/prescriptions",
+          },
+          {
+            title: "Write Prescription",
+            href: "/dashboard/prescriptions/new",
+          },
+          {
+            title: "Prescription Templates",
+            href: "/dashboard/prescriptions/templates",
           },
         ],
       },

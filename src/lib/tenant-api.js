@@ -307,6 +307,27 @@ export const clinicalApi = {
   breakGlassAccess: (patientId, data) => tenantApi.post(`/clinical/break-glass/${patientId}/`, data),
 };
 
+// ── Prescription Management API functions (MODULE 11) ──────────────────────────────────
+export const prescriptionApi = {
+  getDrugs: (params) => tenantApi.get("/prescriptions/drugs/", { params }),
+  createDrug: (data) => tenantApi.post("/prescriptions/drugs/", data),
+  searchDrugs: (q, limit = 20) => tenantApi.get("/prescriptions/drugs/search/", { params: { q, limit } }),
+  checkDrugInteractions: (drugId, params) =>
+    tenantApi.get(`/prescriptions/drugs/${drugId}/interactions/`, { params }),
+  batchCheckInteractions: (data) => tenantApi.post("/prescriptions/check-interactions/", data),
+  getPrescriptions: (params) => tenantApi.get("/prescriptions/", { params }),
+  getPrescription: (id) => tenantApi.get(`/prescriptions/${id}/`),
+  createPrescription: (data) => tenantApi.post("/prescriptions/", data),
+  finalizePrescription: (id) => tenantApi.post(`/prescriptions/${id}/finalize/`),
+  getPatientPrescriptions: (patientId) => tenantApi.get(`/prescriptions/patients/${patientId}/`),
+  getTemplates: (params) => tenantApi.get("/prescriptions/templates/", { params }),
+  createTemplate: (data) => tenantApi.post("/prescriptions/templates/", data),
+  deleteTemplate: (id) => tenantApi.delete(`/prescriptions/templates/${id}/`),
+  verifyPrescription: (id) => tenantApi.get(`/prescriptions/verify/${id}/`),
+  getPdfDownloadUrl: (id) => `${API_URL}/api/v1/prescriptions/${id}/pdf/`,
+};
+
+
 
 
 
