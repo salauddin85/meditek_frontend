@@ -23,7 +23,9 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertTriangle,
-  ShieldAlert,
+  Edit,
+  Trash2,
+  AlertCircle,
 } from "lucide-react";
 
 export default function DrugMasterRegistryPage() {
@@ -32,7 +34,7 @@ export default function DrugMasterRegistryPage() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
 
-  // Modal State
+  // Add Modal State
   const [showAddModal, setShowAddModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState("");
@@ -50,6 +52,28 @@ export default function DrugMasterRegistryPage() {
     requires_dosing_by_weight: false,
     min_egfr_threshold: "",
   });
+
+  // Edit Modal State
+  const [editingDrug, setEditingDrug] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    generic_name: "",
+    generic_name_bn: "",
+    brand_name: "",
+    strength: "",
+    dosage_form: "tablet",
+    manufacturer: "",
+    dgda_reg_number: "",
+    is_controlled: false,
+    requires_dosing_by_weight: false,
+    min_egfr_threshold: "",
+    is_active: true,
+  });
+  const [updating, setUpdating] = useState(false);
+  const [editModalError, setEditModalError] = useState("");
+
+  // Delete Modal State
+  const [deletingDrug, setDeletingDrug] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchDrugs();
@@ -118,7 +142,7 @@ export default function DrugMasterRegistryPage() {
         min_egfr_threshold: formData.min_egfr_threshold ? parseFloat(formData.min_egfr_threshold) : null,
       };
 
-      const res = await prescriptionApi.createDrug(payload);
+      await prescriptionApi.createDrug(payload);
       setSuccessMessage(`Drug '${formData.generic_name}' added successfully to registry!`);
       setShowAddModal(false);
       setFormData({
@@ -134,14 +158,74 @@ export default function DrugMasterRegistryPage() {
         min_egfr_threshold: "",
       });
 
-      // Reload list
       fetchDrugs();
-
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
       setModalError(err.userMessage || "Failed to add drug.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditModal = (drug) => {
+    setEditingDrug(drug);
+    setEditFormData({
+      generic_name: drug.generic_name || "",
+      generic_name_bn: drug.generic_name_bn || "",
+      brand_name: drug.brand_name || "",
+      strength: drug.strength || "",
+      dosage_form: drug.dosage_form || "tablet",
+      manufacturer: drug.manufacturer || "",
+      dgda_reg_number: drug.dgda_reg_number || "",
+      is_controlled: drug.is_controlled || false,
+      requires_dosing_by_weight: drug.requires_dosing_by_weight || false,
+      min_egfr_threshold: drug.min_egfr_threshold || "",
+      is_active: drug.is_active !== false,
+    });
+    setEditModalError("");
+  };
+
+  const handleEditDrugSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingDrug) return;
+    setUpdating(true);
+    setEditModalError("");
+    try {
+      const payload = {
+        ...editFormData,
+        generic_name: editFormData.generic_name.trim(),
+        brand_name: editFormData.brand_name.trim() || null,
+        strength: editFormData.strength.trim() || null,
+        manufacturer: editFormData.manufacturer.trim() || null,
+        dgda_reg_number: editFormData.dgda_reg_number.trim() || null,
+        min_egfr_threshold: editFormData.min_egfr_threshold ? parseFloat(editFormData.min_egfr_threshold) : null,
+      };
+
+      await prescriptionApi.updateDrug(editingDrug.id, payload);
+      setSuccessMessage(`Drug '${editFormData.generic_name}' updated successfully!`);
+      setEditingDrug(null);
+      fetchDrugs();
+      setTimeout(() => setSuccessMessage(""), 5000);
+    } catch (err) {
+      setEditModalError(err.userMessage || "Failed to update drug.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDeleteDrugSubmit = async () => {
+    if (!deletingDrug) return;
+    setDeleting(true);
+    try {
+      await prescriptionApi.deleteDrug(deletingDrug.id);
+      setSuccessMessage(`Drug '${deletingDrug.generic_name}' deactivated/deleted!`);
+      setDeletingDrug(null);
+      fetchDrugs();
+      setTimeout(() => setSuccessMessage(""), 5000);
+    } catch (err) {
+      alert(err.userMessage || "Failed to delete drug.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -162,7 +246,7 @@ export default function DrugMasterRegistryPage() {
             Drug Master Registry (DGDA & Custom)
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Browse DGDA-compliant drug database or manually add new medications for clinical prescribing.
+            Manage DGDA-compliant drug database, edit formulations, or remove discontinued drugs.
           </p>
         </div>
 
@@ -191,7 +275,7 @@ export default function DrugMasterRegistryPage() {
               placeholder="Search generic name, brand, manufacturer..."
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              className="pl-9 bg-slate-50 border-slate-200"
+              className="pl-9 bg-slate-50 border-slate-200 text-sm"
             />
           </div>
         </CardContent>
@@ -226,7 +310,8 @@ export default function DrugMasterRegistryPage() {
                   <TableHead>Strength & Form</TableHead>
                   <TableHead>Manufacturer / DGDA Reg</TableHead>
                   <TableHead>Safety Flags</TableHead>
-                  <TableHead className="text-right pr-6">Status</TableHead>
+                  <TableHead className="w-24 text-center">Status</TableHead>
+                  <TableHead className="w-24 text-right pr-6">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -275,10 +360,32 @@ export default function DrugMasterRegistryPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right pr-6">
-                      <Badge variant="secondary" className="text-xs">
-                        Active
+                    <TableCell className="text-center">
+                      <Badge variant={drug.is_active !== false ? "secondary" : "outline"} className="text-xs">
+                        {drug.is_active !== false ? "Active" : "Inactive"}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Edit Drug"
+                          onClick={() => openEditModal(drug)}
+                          className="h-8 w-8 text-slate-600 hover:text-amber-600"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Delete / Deactivate Drug"
+                          onClick={() => setDeletingDrug(drug)}
+                          className="h-8 w-8 text-slate-600 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -452,6 +559,221 @@ export default function DrugMasterRegistryPage() {
                   </Button>
                 </div>
               </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Drug Modal */}
+      {editingDrug && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="w-full max-w-lg bg-white shadow-xl border-slate-200">
+            <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-900">
+                <Edit className="h-5 w-5 text-amber-600" />
+                Edit Drug Master Record
+              </CardTitle>
+              <button
+                onClick={() => setEditingDrug(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold"
+              >
+                ✕
+              </button>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {editModalError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded text-xs font-semibold flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {editModalError}
+                </div>
+              )}
+
+              <form onSubmit={handleEditDrugSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 mb-1 block">
+                      Generic Name *
+                    </label>
+                    <Input
+                      value={editFormData.generic_name}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, generic_name: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 mb-1 block">
+                      Brand Trade Name
+                    </label>
+                    <Input
+                      value={editFormData.brand_name}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, brand_name: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 mb-1 block">
+                      Strength
+                    </label>
+                    <Input
+                      value={editFormData.strength}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, strength: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 mb-1 block">
+                      Dosage Form
+                    </label>
+                    <select
+                      value={editFormData.dosage_form}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, dosage_form: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm border rounded-md border-slate-300 bg-white"
+                    >
+                      <option value="tablet">Tablet</option>
+                      <option value="capsule">Capsule</option>
+                      <option value="syrup">Syrup</option>
+                      <option value="injection">Injection</option>
+                      <option value="suspension">Suspension</option>
+                      <option value="cream">Cream</option>
+                      <option value="ointment">Ointment</option>
+                      <option value="drops">Drops</option>
+                      <option value="inhaler">Inhaler</option>
+                      <option value="suppository">Suppository</option>
+                      <option value="lotion">Lotion</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 mb-1 block">
+                      Manufacturer
+                    </label>
+                    <Input
+                      value={editFormData.manufacturer}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, manufacturer: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 mb-1 block">
+                      DGDA Reg Number
+                    </label>
+                    <Input
+                      value={editFormData.dgda_reg_number}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, dgda_reg_number: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded border border-slate-200 space-y-2">
+                  <div className="text-xs font-bold text-slate-700">Safety & Status Settings:</div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit_controlled"
+                      checked={editFormData.is_controlled}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, is_controlled: e.target.checked }))}
+                      className="h-4 w-4 rounded border-slate-300 text-red-600 cursor-pointer"
+                    />
+                    <label htmlFor="edit_controlled" className="text-xs font-semibold text-slate-700 cursor-pointer">
+                      Controlled / Narcotic Drug
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit_weight_dosing"
+                      checked={editFormData.requires_dosing_by_weight}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, requires_dosing_by_weight: e.target.checked }))}
+                      className="h-4 w-4 rounded border-slate-300 text-amber-600 cursor-pointer"
+                    />
+                    <label htmlFor="edit_weight_dosing" className="text-xs font-semibold text-slate-700 cursor-pointer">
+                      Pediatric Weight-Based Dosing Mandatory
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit_is_active"
+                      checked={editFormData.is_active}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, is_active: e.target.checked }))}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 cursor-pointer"
+                    />
+                    <label htmlFor="edit_is_active" className="text-xs font-semibold text-slate-700 cursor-pointer">
+                      Active for Prescribing
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 mb-1 block">
+                      Min eGFR Renal Adjustment Threshold (mL/min)
+                    </label>
+                    <Input
+                      type="number"
+                      value={editFormData.min_egfr_threshold}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, min_egfr_threshold: e.target.value }))}
+                      className="bg-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setEditingDrug(null)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={updating}
+                    className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                  >
+                    {updating && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Save Drug Changes
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Delete Drug Confirmation Modal */}
+      {deletingDrug && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="w-full max-w-md bg-white shadow-xl border-slate-200">
+            <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base font-bold text-red-600 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Confirm Drug Deactivation / Deletion
+              </CardTitle>
+              <button
+                onClick={() => setDeletingDrug(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold"
+              >
+                ✕
+              </button>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <p className="text-sm text-slate-600">
+                Are you sure you want to deactivate/delete medication <b>{deletingDrug.generic_name}</b> {deletingDrug.brand_name ? `(${deletingDrug.brand_name})` : ""}?
+              </p>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setDeletingDrug(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteDrugSubmit}
+                  disabled={deleting}
+                  className="bg-red-600 hover:bg-red-700 text-white gap-2"
+                >
+                  {deleting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Deactivate / Delete Drug
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

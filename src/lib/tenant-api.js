@@ -311,6 +311,8 @@ export const clinicalApi = {
 export const prescriptionApi = {
   getDrugs: (params) => tenantApi.get("/prescriptions/drugs/", { params }),
   createDrug: (data) => tenantApi.post("/prescriptions/drugs/", data),
+  updateDrug: (id, data) => tenantApi.patch(`/prescriptions/drugs/${id}/`, data),
+  deleteDrug: (id) => tenantApi.delete(`/prescriptions/drugs/${id}/`),
   searchDrugs: (q, limit = 20) => tenantApi.get("/prescriptions/drugs/search/", { params: { q, limit } }),
   checkDrugInteractions: (drugId, params) =>
     tenantApi.get(`/prescriptions/drugs/${drugId}/interactions/`, { params }),
@@ -318,6 +320,8 @@ export const prescriptionApi = {
   getPrescriptions: (params) => tenantApi.get("/prescriptions/", { params }),
   getPrescription: (id) => tenantApi.get(`/prescriptions/${id}/`),
   createPrescription: (data) => tenantApi.post("/prescriptions/", data),
+  updatePrescription: (id, data) => tenantApi.patch(`/prescriptions/${id}/`, data),
+  deletePrescription: (id) => tenantApi.delete(`/prescriptions/${id}/`),
   finalizePrescription: (id) => tenantApi.post(`/prescriptions/${id}/finalize/`),
   getPatientPrescriptions: (patientId) => tenantApi.get(`/prescriptions/patients/${patientId}/`),
   getTemplates: (params) => tenantApi.get("/prescriptions/templates/", { params }),
