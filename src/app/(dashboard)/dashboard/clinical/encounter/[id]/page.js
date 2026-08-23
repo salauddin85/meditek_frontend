@@ -147,11 +147,15 @@ export default function EncounterWorkspacePage({ params: paramsPromise }) {
   const [vitalPlausibilityWarning, setVitalPlausibilityWarning] = useState(null);
 
   // Diagnosis Form State
+  const [diagEntryMode, setDiagEntryMode] = useState("search"); // 'search' | 'manual'
   const [icdQuery, setIcdQuery] = useState("");
   const [icdResults, setIcdResults] = useState([]);
   const [searchingIcd, setSearchingIcd] = useState(false);
   const [selectedIcd, setSelectedIcd] = useState(null);
+  const [manualIcdCode, setManualIcdCode] = useState("");
+  const [manualIcdDisplay, setManualIcdDisplay] = useState("");
   const [freeTextDiag, setFreeTextDiag] = useState("");
+  const [diagStatus, setDiagStatus] = useState("confirmed");
   const [isPrimaryDiag, setIsPrimaryDiag] = useState(false);
   const [addingDiag, setAddingDiag] = useState(false);
 
@@ -370,27 +374,49 @@ export default function EncounterWorkspacePage({ params: paramsPromise }) {
     }
   };
 
-  // Add Diagnosis
+  // Add Diagnosis (Supports Search Seeded DB & Manual Custom Entry)
   const handleAddDiagnosis = async (e) => {
     e.preventDefault();
-    if (!selectedIcd && !freeTextDiag.trim()) return toast.error("Provide an ICD-10 code or free-text diagnosis.");
+
+    let code = null;
+    let display = null;
+    let freeText = freeTextDiag.trim() || null;
+
+    if (diagEntryMode === "search") {
+      if (selectedIcd) {
+        code = selectedIcd.code;
+        display = selectedIcd.description;
+      }
+    } else {
+      code = manualIcdCode.trim() || null;
+      display = manualIcdDisplay.trim() || null;
+    }
+
+    if (!code && !display && !freeText) {
+      return toast.error("Provide an ICD-10 code, diagnosis display title, or free-text description.");
+    }
 
     setAddingDiag(true);
     try {
       const payload = {
-        icd10_code: selectedIcd?.code || null,
-        free_text: freeTextDiag.trim() || null,
+        icd10_code: code,
+        icd10_display: display,
+        free_text: freeText,
         is_primary: isPrimaryDiag,
+        status: diagStatus,
       };
       const res = await clinicalApi.addDiagnosis(encounterId, payload);
-      setDiagnoses((prev) => [...prev, res.data?.data]);
+      setDiagnoses((prev) => [res.data?.data, ...prev]);
       setSelectedIcd(null);
+      setManualIcdCode("");
+      setManualIcdDisplay("");
       setFreeTextDiag("");
       setIcdQuery("");
       setIcdResults([]);
       setIsPrimaryDiag(false);
+      setDiagStatus("confirmed");
       if (res.data?.warning) toast(res.data.warning, { icon: "⚠️" });
-      else toast.success("Diagnosis added.");
+      else toast.success("Diagnosis recorded successfully.");
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to add diagnosis.");
     } finally {
@@ -931,128 +957,220 @@ export default function EncounterWorkspacePage({ params: paramsPromise }) {
       {/* TAB 3: Diagnoses */}
       {activeTab === "diagnoses" && (
         <div className="space-y-6">
-          <form onSubmit={handleAddDiagnosis} className="bg-card border border-border rounded-xl p-5 space-y-4">
-            <h3 className="font-bold text-default-900 text-sm flex items-center gap-2">
-              <Stethoscope className="w-4 h-4 text-primary" />
-              Add Diagnosis (ICD-10 Coded / Free-text)
-            </h3>
+          <form onSubmit={handleAddDiagnosis} className="bg-card border border-border rounded-xl p-5 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between flex-wrap gap-2 border-b border-border pb-3">
+              <div>
+                <h3 className="font-bold text-default-900 text-sm flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4 text-primary" />
+                  Add Diagnosis (ICD-10 Coded / Free-text)
+                </h3>
+                <p className="text-xs text-default-400">Search seeded database codes or enter custom diagnosis manually</p>
+              </div>
 
-            {/* ICD-10 Search */}
-            <div className="space-y-1.5">
-              <label className="font-medium text-xs text-default-700">ICD-10 Code Search</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={icdQuery}
-                  onChange={(e) => setIcdQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleSearchIcd())}
-                  placeholder="Search by code or description (e.g. J06.9, Dengue, Fever)..."
-                  className="flex-1 h-9 px-3 rounded-lg border border-input bg-background text-xs"
-                />
+              {/* Entry Mode Switcher */}
+              <div className="flex bg-default-100 p-1 rounded-lg border border-border gap-1 text-xs font-semibold">
                 <button
                   type="button"
-                  onClick={handleSearchIcd}
-                  disabled={searchingIcd}
-                  className="h-9 px-3 bg-default-100 border border-input rounded-lg text-xs font-semibold"
+                  onClick={() => setDiagEntryMode("search")}
+                  className={`px-3 py-1 rounded-md transition flex items-center gap-1.5 ${
+                    diagEntryMode === "search"
+                      ? "bg-card text-primary shadow-xs font-bold"
+                      : "text-default-600 hover:text-default-900"
+                  }`}
                 >
-                  {searchingIcd ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                  <Search className="w-3.5 h-3.5" />
+                  Search ICD-10 DB
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDiagEntryMode("manual")}
+                  className={`px-3 py-1 rounded-md transition flex items-center gap-1.5 ${
+                    diagEntryMode === "manual"
+                      ? "bg-card text-primary shadow-xs font-bold"
+                      : "text-default-600 hover:text-default-900"
+                  }`}
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  Manual / Custom Entry
                 </button>
               </div>
-              {icdResults.length > 0 && !selectedIcd && (
-                <div className="border border-border rounded-lg max-h-40 overflow-y-auto bg-card shadow-lg">
-                  {icdResults.map((r) => (
-                    <button
-                      key={r.code}
-                      type="button"
-                      onClick={() => {
-                        setSelectedIcd(r);
-                        setIcdResults([]);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs border-b border-border last:border-0 hover:bg-default-50 flex items-center justify-between"
-                    >
-                      <span>
-                        <strong className="font-mono text-primary mr-2">{r.code}</strong> {r.description}
-                      </span>
-                      <span className="text-[10px] text-default-400">{r.category}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {selectedIcd && (
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20 text-xs">
-                  <span className="font-mono font-bold text-primary">{selectedIcd.code}</span>
-                  <span className="text-default-800">{selectedIcd.description}</span>
-                  <button type="button" onClick={() => setSelectedIcd(null)} className="ml-auto text-default-400">
-                    ✕
+            </div>
+
+            {/* Mode 1: Search Seeded ICD-10 Database */}
+            {diagEntryMode === "search" && (
+              <div className="space-y-1.5">
+                <label className="font-semibold text-xs text-default-700">ICD-10 Code Search</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={icdQuery}
+                    onChange={(e) => setIcdQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleSearchIcd())}
+                    placeholder="Search by code or description (e.g. J06.9, Dengue, Fever)..."
+                    className="flex-1 h-9 px-3 rounded-lg border border-input bg-background text-xs focus:ring-2 focus:ring-primary/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSearchIcd}
+                    disabled={searchingIcd}
+                    className="h-9 px-3 bg-default-100 border border-input rounded-lg text-xs font-semibold hover:bg-default-200"
+                  >
+                    {searchingIcd ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-              )}
-            </div>
+                {icdResults.length > 0 && !selectedIcd && (
+                  <div className="border border-border rounded-lg max-h-48 overflow-y-auto bg-card shadow-lg">
+                    {icdResults.map((r) => (
+                      <button
+                        key={r.code}
+                        type="button"
+                        onClick={() => {
+                          setSelectedIcd(r);
+                          setIcdResults([]);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs border-b border-border last:border-0 hover:bg-default-50 flex items-center justify-between"
+                      >
+                        <span>
+                          <strong className="font-mono text-primary mr-2">[{r.code}]</strong> {r.description}
+                        </span>
+                        <span className="text-[10px] text-default-400 font-mono">{r.category}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {selectedIcd && (
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-xs">
+                    <span className="font-mono font-bold text-primary">[{selectedIcd.code}]</span>
+                    <span className="text-default-800 font-semibold">{selectedIcd.description}</span>
+                    <button type="button" onClick={() => setSelectedIcd(null)} className="ml-auto text-default-400 hover:text-default-700">
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Free-text Diagnosis */}
+            {/* Mode 2: Manual / Custom Diagnosis Entry Form */}
+            {diagEntryMode === "manual" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-xs text-default-700">Manual ICD-10 Code (Optional)</label>
+                  <input
+                    type="text"
+                    value={manualIcdCode}
+                    onChange={(e) => setManualIcdCode(e.target.value)}
+                    placeholder="e.g. A09.0, R50.9, J00..."
+                    className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-xs text-default-700">Diagnosis Title / Display Name *</label>
+                  <input
+                    type="text"
+                    value={manualIcdDisplay}
+                    onChange={(e) => setManualIcdDisplay(e.target.value)}
+                    placeholder="e.g. Acute Upper Respiratory Infection, Viral Fever..."
+                    className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs font-semibold"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Free-text Clinical Impression / Narrative */}
             <div className="space-y-1.5">
-              <label className="font-medium text-xs text-default-700">Free-text Clinical Diagnosis (Optional)</label>
-              <input
-                type="text"
+              <label className="font-semibold text-xs text-default-700">Clinical Narrative & Free-Text Impression (Optional)</label>
+              <textarea
+                rows={2}
                 value={freeTextDiag}
                 onChange={(e) => setFreeTextDiag(e.target.value)}
-                placeholder="Alternative/additional clinical narrative..."
-                className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs"
+                placeholder="Additional clinical narrative, differential reasoning, or diagnostic notes..."
+                className="w-full p-2.5 rounded-lg border border-input bg-background text-xs resize-none"
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="primary-diag"
-                checked={isPrimaryDiag}
-                onChange={(e) => setIsPrimaryDiag(e.target.checked)}
-                className="rounded border-input"
-              />
-              <label htmlFor="primary-diag" className="text-xs font-semibold text-default-700 cursor-pointer">
-                Mark as Primary Diagnosis
-              </label>
+            {/* Status & Primary Checkbox Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+              <div className="space-y-1.5">
+                <label className="font-semibold text-xs text-default-700">Diagnosis Status</label>
+                <select
+                  value={diagStatus}
+                  onChange={(e) => setDiagStatus(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs font-semibold"
+                >
+                  <option value="confirmed">Confirmed</option>
+                  <option value="provisional">Provisional</option>
+                  <option value="differential">Differential</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 pt-4">
+                <input
+                  type="checkbox"
+                  id="primary-diag"
+                  checked={isPrimaryDiag}
+                  onChange={(e) => setIsPrimaryDiag(e.target.checked)}
+                  className="rounded border-input text-primary focus:ring-primary w-4 h-4"
+                />
+                <label htmlFor="primary-diag" className="text-xs font-semibold text-default-800 cursor-pointer">
+                  Mark as Primary Diagnosis
+                </label>
+              </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-2 border-t border-border">
               <button
                 type="submit"
                 disabled={addingDiag}
-                className="h-9 px-5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-primary/20"
+                className="h-9 px-5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-primary/20 hover:bg-primary/90 disabled:opacity-60"
               >
                 {addingDiag ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                Add Diagnosis
+                Add Diagnosis Record
               </button>
             </div>
           </form>
 
           {/* Diagnoses List */}
           <div className="space-y-2">
-            <h3 className="font-bold text-default-900 text-xs uppercase tracking-wider">Recorded Diagnoses</h3>
+            <h3 className="font-bold text-default-900 text-xs uppercase tracking-wider">
+              Recorded Diagnoses ({diagnoses.length})
+            </h3>
             {diagnoses.length === 0 ? (
               <p className="text-xs text-default-400 italic">No diagnoses recorded for this encounter.</p>
             ) : (
               <div className="space-y-2">
                 {diagnoses.map((d) => (
-                  <div key={d.id} className="p-3 bg-card border border-border rounded-xl flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-3">
+                  <div key={d.id} className="p-3 bg-card border border-border rounded-xl flex items-center justify-between text-xs shadow-xs">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       {d.is_primary && (
-                        <span className="px-2 py-0.5 rounded bg-primary/10 text-primary font-bold text-[10px] uppercase">
+                        <span className="px-2 py-0.5 rounded bg-primary/10 text-primary font-bold text-[10px] uppercase border border-primary/20">
                           Primary
                         </span>
                       )}
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
+                        d.status === "confirmed"
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                          : d.status === "provisional"
+                          ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                          : "bg-purple-500/10 text-purple-600 border-purple-500/20"
+                      }`}>
+                        {d.status || "confirmed"}
+                      </span>
                       <div>
                         {d.icd10_code ? (
                           <p className="font-semibold text-default-900">
                             <span className="font-mono text-primary mr-1">[{d.icd10_code}]</span> {d.icd10_display || d.icd10_description}
                           </p>
                         ) : (
-                          <p className="font-semibold text-default-900">{d.free_text}</p>
+                          <p className="font-semibold text-default-900">{d.icd10_display || d.free_text}</p>
+                        )}
+                        {d.free_text && d.icd10_code && (
+                          <p className="text-[11px] text-default-500 mt-0.5">{d.free_text}</p>
                         )}
                       </div>
                     </div>
                     <span className="text-[10px] text-default-400 font-mono">
-                      {new Date(d.diagnosed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(d.diagnosed_at || d.created_at || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
                 ))}
