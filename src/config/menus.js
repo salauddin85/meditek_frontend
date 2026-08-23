@@ -74,6 +74,16 @@ export const tenantMenusConfig = {
       ],
     },
     {
+      title: "Laboratory",
+      icon: Users,
+      child: [
+        {
+          title: "Lab Workstation & Orders",
+          href: "/dashboard/laboratory",
+        },
+      ],
+    },
+    {
       title: "Notification Engine",
       icon: Bell,
       child: [
@@ -188,6 +198,16 @@ export const tenantMenusConfig = {
           {
             title: "Clinical Workspace",
             href: "/dashboard/clinical",
+          },
+        ],
+      },
+      {
+        title: "Laboratory",
+        icon: Users,
+        child: [
+          {
+            title: "Lab Workstation & Orders",
+            href: "/dashboard/laboratory",
           },
         ],
       },
@@ -383,6 +403,16 @@ export const tenantMenusConfig = {
           {
             title: "Clinical Workspace",
             href: "/dashboard/clinical",
+          },
+        ],
+      },
+      {
+        title: "Laboratory",
+        icon: Users,
+        child: [
+          {
+            title: "Lab Workstation & Orders",
+            href: "/dashboard/laboratory",
           },
         ],
       },

@@ -331,6 +331,32 @@ export const prescriptionApi = {
   getPdfDownloadUrl: (id) => `${API_URL}/api/v1/prescriptions/${id}/pdf/`,
 };
 
+// ── Laboratory Management API functions (MODULE 12) ─────────────────────────────────
+export const laboratoryApi = {
+  getCatalogue: (params) => tenantApi.get("/lab/catalogue/", { params }),
+  createTest: (data) => tenantApi.post("/lab/catalogue/", data),
+  getCatalogueGroups: () => tenantApi.get("/lab/catalogue/groups/"),
+  getOrders: (params) => tenantApi.get("/lab/orders/", { params }),
+  getOrder: (id) => tenantApi.get(`/lab/orders/${id}/`),
+  createOrder: (data) => tenantApi.post("/lab/orders/", data),
+  collectSamples: (orderId) => tenantApi.post(`/lab/orders/${orderId}/collect/`),
+  receiveSamples: (orderId) => tenantApi.post(`/lab/orders/${orderId}/receive/`),
+  rejectSample: (sampleId, data) => tenantApi.post(`/lab/samples/${sampleId}/reject/`, data),
+  scanBarcode: (barcode) => tenantApi.get(`/lab/samples/scan/${barcode}/`),
+  enterResult: (itemId, data) => tenantApi.post(`/lab/results/${itemId}/enter/`, data),
+  verifyResult: (itemId) => tenantApi.post(`/lab/results/${itemId}/verify/`),
+  amendResult: (itemId, data) => tenantApi.post(`/lab/results/${itemId}/amend/`, data),
+  getCriticalAlerts: (params) => tenantApi.get("/lab/critical-alerts/", { params }),
+  acknowledgeCriticalAlert: (alertId, data) => tenantApi.post(`/lab/critical-alerts/${alertId}/acknowledge/`, data),
+  releaseReport: (orderId) => tenantApi.post(`/lab/orders/${orderId}/release/`),
+  getPdfDownloadUrl: (reportId) => `${API_URL}/api/v1/lab/reports/${reportId}/pdf/`,
+  getPublicVerify: (token) => tenantApi.get(`/lab/verify/${token}/`),
+  getHomeCollections: (params) => tenantApi.get("/lab/home-collection/", { params }),
+  createHomeCollection: (data) => tenantApi.post("/lab/home-collection/", data),
+  assignPhlebotomist: (reqId, data) => tenantApi.patch(`/lab/home-collection/${reqId}/assign/`, data),
+};
+
+
 
 
 
