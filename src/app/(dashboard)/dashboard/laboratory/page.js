@@ -4,17 +4,45 @@ import { useState, useEffect } from "react";
 import { laboratoryApi, patientApi, branchesApi } from "@/lib/tenant-api";
 import { toast } from "react-hot-toast";
 
-// Standard fallback tests to ensure the user ALWAYS has standard lab options
-const DEFAULT_TEST_CATALOGUE = [
-  { id: "fallback-hb", name: "Hemoglobin", short_code: "HB", specimen_type: "blood", container_type: "EDTA", price: "300.00", tat_hours: 4 },
-  { id: "fallback-cbc", name: "Complete Blood Count", short_code: "CBC", specimen_type: "blood", container_type: "EDTA", price: "500.00", tat_hours: 6, is_profile: true },
-  { id: "fallback-fbs", name: "Fasting Blood Sugar", short_code: "FBS", specimen_type: "blood", container_type: "Fluoride", price: "200.00", tat_hours: 4 },
-  { id: "fallback-creat", name: "Serum Creatinine", short_code: "CREAT", specimen_type: "blood", container_type: "Serum Separator", price: "400.00", tat_hours: 4 },
-  { id: "fallback-sgpt", name: "ALT / SGPT", short_code: "SGPT", specimen_type: "blood", container_type: "Serum Separator", price: "450.00", tat_hours: 4 },
-  { id: "fallback-tsh", name: "Thyroid Stimulating Hormone", short_code: "TSH", specimen_type: "blood", container_type: "Serum Separator", price: "800.00", tat_hours: 12 },
-  { id: "fallback-lipid", name: "Lipid Profile", short_code: "LIPID", specimen_type: "blood", container_type: "Serum Separator", price: "1000.00", tat_hours: 12, is_profile: true },
-  { id: "fallback-urine", name: "Urine Routine & Microscopy", short_code: "URINE_RME", specimen_type: "urine", container_type: "Sterile Container", price: "300.00", tat_hours: 3 },
-];
+// Helper function to extract exact validation messages from backend response
+function formatApiError(err) {
+  const resp = err.response?.data;
+  if (!resp) return err.userMessage || err.message || "An unexpected error occurred.";
+  
+  let msg = resp.message || "Validation failed.";
+  if (resp.data && typeof resp.data === "object" && !Array.isArray(resp.data)) {
+    const details = [];
+    for (const [key, val] of Object.entries(resp.data)) {
+      if (key === "pagination") continue;
+      if (Array.isArray(val)) {
+        details.push(`${key}: ${val.join(", ")}`);
+      } else if (typeof val === "object") {
+        const subMsgs = Object.values(val).flatMap((v) => (Array.isArray(v) ? v : [String(v)]));
+        details.push(`${key}: ${subMsgs.join(", ")}`);
+      } else {
+        details.push(`${key}: ${val}`);
+      }
+    }
+    if (details.length > 0) {
+      msg += ` — ${details.join(" | ")}`;
+    }
+  }
+  return msg;
+}
+
+/**
+ * Correctly extract a list from backend responses.
+ * Handles two shapes:
+ *  1. Paginated:    { code, status, message, data: { results: [...], pagination: {...} } }
+ *  2. Direct list:  { code, status, message, data: [...] }
+ */
+function extractList(axiosResponse) {
+  const body = axiosResponse?.data; // { code, status, message, data: ... }
+  const payload = body?.data;       // either [...] or { results: [...], pagination: {...} }
+  if (Array.isArray(payload)) return payload;                        // direct list
+  if (payload && Array.isArray(payload.results)) return payload.results; // paginated
+  return [];
+}
 
 export default function LaboratoryWorkstationPage() {
   const [activeTab, setActiveTab] = useState("orders"); // orders | samples | results | alerts | catalogue | home_collection
@@ -22,11 +50,12 @@ export default function LaboratoryWorkstationPage() {
 
   // Data States
   const [orders, setOrders] = useState([]);
-  const [catalogue, setCatalogue] = useState(DEFAULT_TEST_CATALOGUE);
+  const [catalogue, setCatalogue] = useState([]);
   const [groups, setGroups] = useState([]);
   const [criticalAlerts, setCriticalAlerts] = useState([]);
   const [homeCollections, setHomeCollections] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
+  const [branches, setBranches] = useState([]);
 
   // Barcode Scanner State
   const [scannedBarcode, setScannedBarcode] = useState("");
@@ -68,7 +97,6 @@ export default function LaboratoryWorkstationPage() {
 
   const [patientSearch, setPatientSearch] = useState("");
   const [patientOptions, setPatientOptions] = useState([]);
-  const [branches, setBranches] = useState([]);
 
   const [resultInput, setResultInput] = useState("");
   const [amendReason, setAmendReason] = useState("");
@@ -92,37 +120,16 @@ export default function LaboratoryWorkstationPage() {
         branchesApi.getBranches(),
       ]);
 
-      if (ordersRes.status === "fulfilled") {
-        const d = ordersRes.value?.data;
-        setOrders(Array.isArray(d?.data) ? d.data : Array.isArray(d?.results) ? d.results : Array.isArray(d) ? d : []);
-      }
-      if (catRes.status === "fulfilled") {
-        const d = catRes.value?.data;
-        const fetchedCat = Array.isArray(d?.data) ? d.data : Array.isArray(d?.results) ? d.results : Array.isArray(d) ? d : [];
-        if (fetchedCat.length > 0) {
-          setCatalogue(fetchedCat);
-        } else {
-          setCatalogue(DEFAULT_TEST_CATALOGUE);
-        }
-      }
-      if (groupsRes.status === "fulfilled") {
-        const d = groupsRes.value?.data;
-        setGroups(Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []);
-      }
-      if (alertsRes.status === "fulfilled") {
-        const d = alertsRes.value?.data;
-        setCriticalAlerts(Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []);
-      }
-      if (homeRes.status === "fulfilled") {
-        const d = homeRes.value?.data;
-        setHomeCollections(Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []);
-      }
+      if (ordersRes.status === "fulfilled") setOrders(extractList(ordersRes.value));
+      if (catRes.status === "fulfilled") setCatalogue(extractList(catRes.value));
+      if (groupsRes.status === "fulfilled") setGroups(extractList(groupsRes.value));
+      if (alertsRes.status === "fulfilled") setCriticalAlerts(extractList(alertsRes.value));
+      if (homeRes.status === "fulfilled") setHomeCollections(extractList(homeRes.value));
       if (branchesRes.status === "fulfilled") {
-        const d = branchesRes.value?.data;
-        const bList = Array.isArray(d?.data) ? d.data : Array.isArray(d?.results) ? d.results : Array.isArray(d) ? d : [];
+        const bList = extractList(branchesRes.value);
         setBranches(bList);
-        if (bList.length > 0 && !newOrder.branch_id) {
-          setNewOrder((prev) => ({ ...prev, branch_id: bList[0].id }));
+        if (bList.length > 0) {
+          setNewOrder((prev) => prev.branch_id ? prev : { ...prev, branch_id: bList[0].id });
         }
       }
     } catch (err) {
@@ -139,8 +146,7 @@ export default function LaboratoryWorkstationPage() {
     if (!query || query.length < 2) return;
     try {
       const res = await patientApi.searchPatients(query);
-      const d = res?.data;
-      setPatientOptions(Array.isArray(d?.data) ? d.data : Array.isArray(d?.results) ? d.results : Array.isArray(d) ? d : []);
+      setPatientOptions(extractList(res));
     } catch (err) {
       console.error(err);
     }
@@ -149,22 +155,43 @@ export default function LaboratoryWorkstationPage() {
   // Create Order
   const handleCreateOrder = async (e) => {
     e.preventDefault();
-    if (!newOrder.patient_id) return toast.error("Please select a patient.");
-    if (!newOrder.branch_id) return toast.error("Please select a branch.");
-    if (newOrder.test_ids.length === 0) return toast.error("Please select at least one test.");
+    if (!newOrder.patient_id) return toast.error("Please search and select a patient.");
+    if (newOrder.test_ids.length === 0) return toast.error("Please select at least one test to order.");
+
+    // Ensure valid UUIDs for test_ids
+    const validTestIds = newOrder.test_ids.filter((id) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    );
+
+    if (validTestIds.length === 0) {
+      return toast.error("Selected tests are invalid. Please select standard tests from the list.");
+    }
+
+    const payload = {
+      patient_id: newOrder.patient_id,
+      test_ids: validTestIds,
+      priority: newOrder.priority || "routine",
+    };
+
+    if (newOrder.branch_id) payload.branch_id = newOrder.branch_id;
+    else if (branches.length > 0) payload.branch_id = branches[0].id;
+
+    if (newOrder.clinical_notes && newOrder.clinical_notes.trim()) payload.clinical_notes = newOrder.clinical_notes.trim();
+    if (newOrder.is_home_collection) payload.is_home_collection = true;
 
     try {
-      await laboratoryApi.createOrder(newOrder);
+      await laboratoryApi.createOrder(payload);
       toast.success("Lab order created successfully!");
       setIsOrderModalOpen(false);
       setNewOrder({ patient_id: "", branch_id: branches[0]?.id || "", test_ids: [], priority: "routine", clinical_notes: "", is_home_collection: false });
+      setPatientSearch("");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Failed to create lab order.");
+      toast.error(formatApiError(err));
     }
   };
 
-  // Create New Test Definition
+  // Create New Test Definition in DB
   const handleCreateTestDefinition = async (e) => {
     e.preventDefault();
     if (!newTest.name.trim() || !newTest.short_code.trim()) {
@@ -172,13 +199,25 @@ export default function LaboratoryWorkstationPage() {
     }
 
     try {
-      const res = await laboratoryApi.createTest(newTest);
+      const payload = {
+        name: newTest.name.trim(),
+        short_code: newTest.short_code.trim().toUpperCase(),
+        specimen_type: newTest.specimen_type || "blood",
+        container_type: newTest.container_type || "EDTA",
+        price: parseFloat(newTest.price) || 0,
+        tat_hours: parseInt(newTest.tat_hours) || 6,
+      };
+      if (newTest.loinc_code && newTest.loinc_code.trim()) {
+        payload.loinc_code = newTest.loinc_code.trim();
+      }
+
+      const res = await laboratoryApi.createTest(payload);
       const createdObj = res?.data?.data || res?.data;
-      toast.success(`Test '${newTest.name}' created successfully!`);
-      
-      // Update active catalogue immediately
-      const updatedCat = createdObj?.id ? [...catalogue, createdObj] : [...catalogue, { ...newTest, id: `custom-${Date.now()}` }];
-      setCatalogue(updatedCat);
+      toast.success(`Test '${newTest.name}' created and saved to database!`);
+
+      // Refetch catalogue from backend so DB UUID is active and persistent!
+      const catRes = await laboratoryApi.getCatalogue();
+      setCatalogue(extractList(catRes));
 
       // Auto-select the newly created test if in Order Modal
       if (createdObj?.id) {
@@ -199,12 +238,7 @@ export default function LaboratoryWorkstationPage() {
         loinc_code: "",
       });
     } catch (err) {
-      // Fallback local addition if API fails (e.g. offline or demo mode)
-      const localTest = { ...newTest, id: `local-${Date.now()}` };
-      setCatalogue((prev) => [...prev, localTest]);
-      setNewOrder((prev) => ({ ...prev, test_ids: [...prev.test_ids, localTest.id] }));
-      toast.success(`Test '${newTest.name}' added to local session catalogue!`);
-      setIsAddTestModalOpen(false);
+      toast.error(formatApiError(err));
     }
   };
 
@@ -215,7 +249,7 @@ export default function LaboratoryWorkstationPage() {
       toast.success("Samples marked as Collected!");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Failed to collect samples.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -225,7 +259,7 @@ export default function LaboratoryWorkstationPage() {
       toast.success("Samples received at workstation!");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Failed to receive samples.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -239,7 +273,7 @@ export default function LaboratoryWorkstationPage() {
       toast.success("Sample barcode located!");
     } catch (err) {
       setScannedSampleData(null);
-      toast.error(err.userMessage || `Sample '${scannedBarcode}' not found.`);
+      toast.error(formatApiError(err));
     }
   };
 
@@ -254,7 +288,7 @@ export default function LaboratoryWorkstationPage() {
       setSelectedSample(null);
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Failed to reject sample.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -270,7 +304,7 @@ export default function LaboratoryWorkstationPage() {
       setResultInput("");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Failed to enter result.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -281,7 +315,7 @@ export default function LaboratoryWorkstationPage() {
       toast.success("Result verified by Pathologist!");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Verification failed.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -303,7 +337,7 @@ export default function LaboratoryWorkstationPage() {
       setAmendReason("");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Failed to amend result.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -314,7 +348,7 @@ export default function LaboratoryWorkstationPage() {
       toast.success("Lab report released successfully!");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Cannot release report.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -332,7 +366,7 @@ export default function LaboratoryWorkstationPage() {
       setNotifiedPerson("");
       fetchData();
     } catch (err) {
-      toast.error(err.userMessage || "Failed to acknowledge alert.");
+      toast.error(formatApiError(err));
     }
   };
 
@@ -858,14 +892,14 @@ export default function LaboratoryWorkstationPage() {
         </div>
       )}
 
-      {/* Tab 5: Test Catalogue Master & Manual Test Creation Form */}
+      {/* Tab 5: Test Catalogue Master */}
       {activeTab === "catalogue" && (
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
             <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Laboratory Test Master Catalogue</h3>
-                <p className="text-xs text-slate-500">Active tests available for patient lab order placement.</p>
+                <p className="text-xs text-slate-500">Active tests saved in database for patient lab order placement.</p>
               </div>
               <button
                 onClick={() => setIsAddTestModalOpen(true)}
@@ -886,21 +920,29 @@ export default function LaboratoryWorkstationPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {catalogue.map((test) => (
-                  <tr key={test.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
-                    <td className="p-4 font-mono text-xs font-bold text-blue-600 dark:text-blue-400">{test.short_code}</td>
-                    <td className="p-4 font-semibold text-slate-900 dark:text-white">
-                      {test.name}
-                      {test.is_profile && <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded font-bold">PROFILE</span>}
+                {catalogue.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="p-8 text-center text-slate-400">
+                      No test catalogue found in database. Click "+ Add Custom Test Name" above to create one.
                     </td>
-                    <td className="p-4 text-xs text-slate-500">{test.group_name || "General"}</td>
-                    <td className="p-4 text-xs">
-                      {test.specimen_type} / <span className="font-mono text-slate-500">{test.container_type}</span>
-                    </td>
-                    <td className="p-4 text-xs font-mono">{test.tat_hours} hrs</td>
-                    <td className="p-4 font-mono font-bold text-slate-900 dark:text-white">৳{test.price}</td>
                   </tr>
-                ))}
+                ) : (
+                  catalogue.map((test) => (
+                    <tr key={test.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                      <td className="p-4 font-mono text-xs font-bold text-blue-600 dark:text-blue-400">{test.short_code}</td>
+                      <td className="p-4 font-semibold text-slate-900 dark:text-white">
+                        {test.name}
+                        {test.is_profile && <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded font-bold">PROFILE</span>}
+                      </td>
+                      <td className="p-4 text-xs text-slate-500">{test.group_name || "General"}</td>
+                      <td className="p-4 text-xs">
+                        {test.specimen_type} / <span className="font-mono text-slate-500">{test.container_type}</span>
+                      </td>
+                      <td className="p-4 text-xs font-mono">{test.tat_hours} hrs</td>
+                      <td className="p-4 font-mono font-bold text-slate-900 dark:text-white">৳{test.price}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -955,10 +997,10 @@ export default function LaboratoryWorkstationPage() {
 
             <form onSubmit={handleCreateOrder} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Search Patient</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Search Patient *</label>
                 <input
                   type="text"
-                  placeholder="Type patient name or MRN..."
+                  placeholder="Type patient name or MRN to search..."
                   value={patientSearch}
                   onChange={(e) => handleSearchPatients(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm"
@@ -982,6 +1024,23 @@ export default function LaboratoryWorkstationPage() {
                 )}
               </div>
 
+              {branches.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Branch</label>
+                  <select
+                    value={newOrder.branch_id}
+                    onChange={(e) => setNewOrder({ ...newOrder, branch_id: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Priority</label>
                 <select
@@ -997,14 +1056,14 @@ export default function LaboratoryWorkstationPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Select Tests to Order</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Select Tests to Order *</label>
                   <span className="text-[11px] text-blue-600 font-medium">Selected ({newOrder.test_ids.length})</span>
                 </div>
                 
                 <div className="max-h-48 overflow-y-auto space-y-1 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                   {catalogue.length === 0 ? (
                     <div className="p-4 text-center text-xs text-slate-400">
-                      No tests available. Click "+ Add Custom Test" above to create one.
+                      No tests available in database. Click "+ Add Custom Test" above to create one.
                     </div>
                   ) : (
                     catalogue.map((t) => {
@@ -1054,14 +1113,14 @@ export default function LaboratoryWorkstationPage() {
         </div>
       )}
 
-      {/* MODAL 2: Form to Add Custom Test Definition */}
+      {/* MODAL 2: Form to Add Custom Test Definition in DB */}
       {isAddTestModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-800 max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-700">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span>🧪</span> Add New Lab Test Name
             </h3>
-            <p className="text-xs text-slate-500">Define test parameters and price to instantly make it available for orders.</p>
+            <p className="text-xs text-slate-500">Define test parameters and price to instantly save it in database for order placement.</p>
 
             <form onSubmit={handleCreateTestDefinition} className="space-y-3">
               <div>

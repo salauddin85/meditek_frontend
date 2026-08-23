@@ -333,10 +333,10 @@ export const prescriptionApi = {
 
 // ── Laboratory Management API functions (MODULE 12) ─────────────────────────────────
 export const laboratoryApi = {
-  getCatalogue: (params) => tenantApi.get("/lab/catalogue/", { params }),
+  getCatalogue: (params) => tenantApi.get("/lab/catalogue/", { params: { page_size: 200, ...params } }),
   createTest: (data) => tenantApi.post("/lab/catalogue/", data),
   getCatalogueGroups: () => tenantApi.get("/lab/catalogue/groups/"),
-  getOrders: (params) => tenantApi.get("/lab/orders/", { params }),
+  getOrders: (params) => tenantApi.get("/lab/orders/", { params: { page_size: 200, ...params } }),
   getOrder: (id) => tenantApi.get(`/lab/orders/${id}/`),
   createOrder: (data) => tenantApi.post("/lab/orders/", data),
   collectSamples: (orderId) => tenantApi.post(`/lab/orders/${orderId}/collect/`),
