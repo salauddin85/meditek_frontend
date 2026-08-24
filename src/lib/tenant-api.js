@@ -356,6 +356,51 @@ export const laboratoryApi = {
   assignPhlebotomist: (reqId, data) => tenantApi.patch(`/lab/home-collection/${reqId}/assign/`, data),
 };
 
+// ── Financial Management API functions (MODULE 13) ──────────────────────────────────
+export const financeApi = {
+  // Chart of Accounts & Service Master
+  getChartOfAccounts: () => tenantApi.get("/finance/chart-of-accounts/"),
+  createChartOfAccount: (data) => tenantApi.post("/finance/chart-of-accounts/", data),
+  getServiceItems: (params) => tenantApi.get("/finance/service-items/", { params }),
+  createServiceItem: (data) => tenantApi.post("/finance/service-items/", data),
+  getServiceItem: (id) => tenantApi.get(`/finance/service-items/${id}/`),
+  updateServiceItem: (id, data) => tenantApi.patch(`/finance/service-items/${id}/`, data),
+  setPricingTier: (itemId, data) => tenantApi.post(`/finance/service-items/${itemId}/pricing/`, data),
+
+  // Invoices & Payments
+  getInvoices: (params) => tenantApi.get("/finance/invoices/", { params }),
+  getInvoice: (id) => tenantApi.get(`/finance/invoices/${id}/`),
+  createInvoice: (data) => tenantApi.post("/finance/invoices/", data),
+  recordPayment: (invoiceId, data) => tenantApi.post(`/finance/invoices/${invoiceId}/payment/`, data),
+  processRefund: (invoiceId, data) => tenantApi.post(`/finance/invoices/${invoiceId}/refund/`, data),
+  issueCreditNote: (invoiceId, data) => tenantApi.post(`/finance/invoices/${invoiceId}/credit-note/`, data),
+  applyDiscount: (invoiceId, data) => tenantApi.post(`/finance/invoices/${invoiceId}/discount/`, data),
+  getPatientInvoices: (patientId) => tenantApi.get(`/finance/invoices/patient/${patientId}/`),
+
+  // Double-Entry Ledger & Financial Reports
+  getGeneralLedger: (params) => tenantApi.get("/finance/gl/", { params }),
+  getTrialBalance: (params) => tenantApi.get("/finance/trial-balance/", { params }),
+  getProfitAndLoss: (params) => tenantApi.get("/finance/pnl/", { params }),
+  getBalanceSheet: (params) => tenantApi.get("/finance/balance-sheet/", { params }),
+  getAgedReceivables: (params) => tenantApi.get("/finance/aged-receivables/", { params }),
+  getDayBook: (params) => tenantApi.get("/finance/day-book/", { params }),
+
+  // Accounting Period Control
+  closePeriod: (data) => tenantApi.post("/finance/period/close/", data),
+  reopenPeriod: (data) => tenantApi.post("/finance/period/reopen/", data),
+
+  // Doctor Revenue Share
+  getDoctorRevenueConfigs: (params) => tenantApi.get("/finance/revenue-share/configs/", { params }),
+  createDoctorRevenueConfig: (data) => tenantApi.post("/finance/revenue-share/configs/", data),
+  getDoctorRevenueStatements: (params) => tenantApi.get("/finance/revenue-share/statements/", { params }),
+  generateDoctorRevenueStatement: (data) => tenantApi.post("/finance/revenue-share/statements/generate/", data),
+
+  // Doctor & Patient Helpers for Invoicing
+  getDoctors: (params) => tenantApi.get("/doctors/", { params }),
+  getPatients: (params) => tenantApi.get("/patients/", { params }),
+};
+
+
 
 
 

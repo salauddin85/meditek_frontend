@@ -916,6 +916,22 @@ export default function DoctorsPage() {
                     <Award className="w-3.5 h-3.5 text-primary" /> BMDC:{" "}
                     <strong className="text-default-700 font-mono">{doc.bmdc_reg_number}</strong>
                   </p>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-default-500 bg-default-100 dark:bg-default-800/50 px-2.5 py-1.5 rounded-lg border border-border">
+                    <span className="truncate mr-1">
+                      UUID: <strong className="text-default-800 dark:text-default-200">{doc.id}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(doc.id);
+                        toast.success(`Copied UUID for ${doc.full_name}`);
+                      }}
+                      className="p-1 hover:bg-default-200 dark:hover:bg-default-700 rounded text-primary transition shrink-0"
+                      title="Copy Doctor UUID"
+                    >
+                      <Icon icon="heroicons:document-duplicate" className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   {doc.phone && (
                     <p className="flex items-center gap-1.5 text-default-500">
                       <Icon icon="heroicons:phone" className="w-3.5 h-3.5 text-primary" /> {doc.phone}

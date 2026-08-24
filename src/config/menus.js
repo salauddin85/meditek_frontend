@@ -84,6 +84,48 @@ export const tenantMenusConfig = {
       ],
     },
     {
+      title: "Financial Management",
+      icon: DashBoard,
+      child: [
+        {
+          title: "Financial Overview",
+          href: "/dashboard/finance",
+        },
+        {
+          title: "Invoice Workstation",
+          href: "/dashboard/finance/invoices",
+        },
+        {
+          title: "General Ledger",
+          href: "/dashboard/finance/reports/gl",
+        },
+        {
+          title: "Profit & Loss",
+          href: "/dashboard/finance/reports/pnl",
+        },
+        {
+          title: "Balance Sheet",
+          href: "/dashboard/finance/reports/balance-sheet",
+        },
+        {
+          title: "Aged Receivables",
+          href: "/dashboard/finance/reports/aged-receivables",
+        },
+        {
+          title: "Doctor Revenue Share",
+          href: "/dashboard/finance/revenue-share",
+        },
+        {
+          title: "Chart of Accounts",
+          href: "/dashboard/finance/chart-of-accounts",
+        },
+        {
+          title: "Charge Master Catalog",
+          href: "/dashboard/finance/service-items",
+        },
+      ],
+    },
+    {
       title: "Notification Engine",
       icon: Bell,
       child: [
@@ -244,6 +286,48 @@ export const tenantMenusConfig = {
           {
             title: "Employee Directory",
             href: "/dashboard/staff/employees",
+          },
+        ],
+      },
+      {
+        title: "Financial Management",
+        icon: DashBoard,
+        child: [
+          {
+            title: "Financial Overview",
+            href: "/dashboard/finance",
+          },
+          {
+            title: "Invoice Workstation",
+            href: "/dashboard/finance/invoices",
+          },
+          {
+            title: "General Ledger",
+            href: "/dashboard/finance/reports/gl",
+          },
+          {
+            title: "Profit & Loss",
+            href: "/dashboard/finance/reports/pnl",
+          },
+          {
+            title: "Balance Sheet",
+            href: "/dashboard/finance/reports/balance-sheet",
+          },
+          {
+            title: "Aged Receivables",
+            href: "/dashboard/finance/reports/aged-receivables",
+          },
+          {
+            title: "Doctor Revenue Share",
+            href: "/dashboard/finance/revenue-share",
+          },
+          {
+            title: "Chart of Accounts",
+            href: "/dashboard/finance/chart-of-accounts",
+          },
+          {
+            title: "Charge Master Catalog",
+            href: "/dashboard/finance/service-items",
           },
         ],
       },
@@ -445,6 +529,48 @@ export const tenantMenusConfig = {
           {
             title: "Employee Directory",
             href: "/dashboard/staff/employees",
+          },
+        ],
+      },
+      {
+        title: "Financial Management",
+        icon: DashBoard,
+        child: [
+          {
+            title: "Financial Overview",
+            href: "/dashboard/finance",
+          },
+          {
+            title: "Invoice Workstation",
+            href: "/dashboard/finance/invoices",
+          },
+          {
+            title: "General Ledger",
+            href: "/dashboard/finance/reports/gl",
+          },
+          {
+            title: "Profit & Loss",
+            href: "/dashboard/finance/reports/pnl",
+          },
+          {
+            title: "Balance Sheet",
+            href: "/dashboard/finance/reports/balance-sheet",
+          },
+          {
+            title: "Aged Receivables",
+            href: "/dashboard/finance/reports/aged-receivables",
+          },
+          {
+            title: "Doctor Revenue Share",
+            href: "/dashboard/finance/revenue-share",
+          },
+          {
+            title: "Chart of Accounts",
+            href: "/dashboard/finance/chart-of-accounts",
+          },
+          {
+            title: "Charge Master Catalog",
+            href: "/dashboard/finance/service-items",
           },
         ],
       },
