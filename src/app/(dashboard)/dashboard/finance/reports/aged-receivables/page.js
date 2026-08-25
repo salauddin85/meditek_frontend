@@ -58,7 +58,7 @@ export default function AgedReceivablesPage() {
             Aged Receivables Report
           </h1>
           <p className="text-sm text-default-500 mt-1">
-            FR-FIN-009 — Patient outstanding balances categorized by overdue age buckets.
+            Patient outstanding balances categorized by overdue age buckets.
           </p>
         </div>
 

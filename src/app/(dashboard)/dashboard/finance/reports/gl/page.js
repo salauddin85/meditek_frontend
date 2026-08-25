@@ -65,7 +65,7 @@ export default function GeneralLedgerPage() {
             General Ledger (Double-Entry Register)
           </h1>
           <p className="text-sm text-default-500 mt-1">
-            FR-FIN-001 & FR-FIN-013 — Append-only double-entry transaction record. All dashboard metrics derive from these balanced lines.
+            Append-only double-entry transaction record. All dashboard metrics derive from these balanced lines.
           </p>
         </div>
 

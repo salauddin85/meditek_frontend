@@ -398,6 +398,7 @@ export const financeApi = {
   createDoctorRevenueConfig: (data) => tenantApi.post("/finance/revenue-share/configs/", data),
   getDoctorRevenueStatements: (params) => tenantApi.get("/finance/revenue-share/statements/", { params }),
   generateDoctorRevenueStatement: (data) => tenantApi.post("/finance/revenue-share/statements/generate/", data),
+  disburseDoctorRevenueStatement: (id, data) => tenantApi.post(`/finance/revenue-share/statements/${id}/disburse/`, data),
 
   // Doctor & Patient Helpers for Invoicing
   getDoctors: (params) => tenantApi.get("/doctors/", { params }),

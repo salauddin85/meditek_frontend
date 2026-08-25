@@ -20,6 +20,11 @@ export default function DoctorRevenueSharePage() {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
 
+  // Disburse Payout Modal State
+  const [disburseTarget, setDisburseTarget] = useState(null);
+  const [disbursePaymentMethod, setDisbursePaymentMethod] = useState("cash");
+  const [submittingDisburse, setSubmittingDisburse] = useState(false);
+
   const [configForm, setConfigForm] = useState({
     doctor_id: "",
     service_category: "",
@@ -120,6 +125,27 @@ export default function DoctorRevenueSharePage() {
     }
   };
 
+  const handleConfirmDisburse = async (e) => {
+    e.preventDefault();
+    if (!disburseTarget) return;
+
+    setSubmittingDisburse(true);
+    try {
+      await financeApi.disburseDoctorRevenueStatement(disburseTarget.id, {
+        payment_method: disbursePaymentMethod,
+      });
+      toast.success(
+        `Disbursed ৳${parseFloat(disburseTarget.share_amount).toLocaleString()} payout to Dr. ${disburseTarget.doctor_name}! GL entry posted.`
+      );
+      setDisburseTarget(null);
+      fetchStatements();
+    } catch (err) {
+      toast.error(err.userMessage || "Failed to disburse statement");
+    } finally {
+      setSubmittingDisburse(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -130,7 +156,7 @@ export default function DoctorRevenueSharePage() {
             Doctor Revenue Share Management
           </h1>
           <p className="text-sm text-default-500 mt-1">
-            FR-FIN-008 — Configurable doctor revenue percentage/fixed share per service category with period payable statements.
+            Configurable doctor revenue percentage/fixed share per service category with period payable statements.
           </p>
         </div>
 
@@ -248,6 +274,7 @@ export default function DoctorRevenueSharePage() {
                       <th className="p-3 text-right">Doctor Payable Share</th>
                       <th className="p-3">Status</th>
                       <th className="p-3">Generated At</th>
+                      <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -258,11 +285,37 @@ export default function DoctorRevenueSharePage() {
                         <td className="p-3 text-right font-medium">৳{parseFloat(s.total_revenue).toLocaleString()}</td>
                         <td className="p-3 text-right font-bold text-emerald-600">৳{parseFloat(s.share_amount).toLocaleString()}</td>
                         <td className="p-3 capitalize">
-                          <Badge variant="soft" className="text-xs bg-emerald-500/10 text-emerald-600">
+                          <Badge
+                            variant="soft"
+                            className={`text-xs ${
+                              s.status === "paid"
+                                ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                                : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                            }`}
+                          >
                             {s.status}
                           </Badge>
                         </td>
                         <td className="p-3 text-xs text-default-400">{new Date(s.generated_at).toLocaleDateString()}</td>
+                        <td className="p-3 text-right">
+                          {s.status !== "paid" ? (
+                            <Button
+                              size="sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-7 px-2.5"
+                              onClick={() => {
+                                setDisbursePaymentMethod("cash");
+                                setDisburseTarget(s);
+                              }}
+                            >
+                              <Icon icon="heroicons:banknotes" className="w-3.5 h-3.5 mr-1" />
+                              Disburse Payout
+                            </Button>
+                          ) : (
+                            <span className="text-xs font-semibold text-emerald-600 flex items-center justify-end gap-1">
+                              <Icon icon="heroicons:check-circle" className="w-4 h-4" /> Disbursed
+                            </span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -423,6 +476,81 @@ export default function DoctorRevenueSharePage() {
                 </Button>
                 <Button type="submit" className="bg-emerald-600 text-white hover:bg-emerald-700">
                   Calculate & Generate
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DISBURSE PAYOUT MODAL */}
+      {disburseTarget && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card w-full max-w-md rounded-2xl border shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-emerald-600 font-bold text-lg">
+                <Icon icon="heroicons:banknotes" className="w-6 h-6" />
+                Confirm Doctor Revenue Payout
+              </div>
+              <Button size="icon" variant="ghost" onClick={() => setDisburseTarget(null)}>
+                <Icon icon="heroicons:x-mark" className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="bg-default-50 p-4 rounded-xl border border-border space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-default-500">Doctor:</span>
+                <strong className="text-default-900">{disburseTarget.doctor_name}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-default-500">Period:</span>
+                <span className="font-mono text-default-700">{disburseTarget.period_start} to {disburseTarget.period_end}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-default-500">Total Billed Revenue:</span>
+                <span className="font-semibold text-default-800">৳{parseFloat(disburseTarget.total_revenue).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-base border-t pt-2 mt-2">
+                <span className="font-bold text-default-900">Payable Share:</span>
+                <strong className="font-extrabold text-emerald-600 text-lg">৳{parseFloat(disburseTarget.share_amount).toLocaleString()}</strong>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmDisburse} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-default-700 mb-1">Disbursement Payment Method</label>
+                <select
+                  className="w-full text-sm p-2 rounded-lg border bg-background text-default-800 focus:ring-2 focus:ring-emerald-500/30"
+                  value={disbursePaymentMethod}
+                  onChange={(e) => setDisbursePaymentMethod(e.target.value)}
+                >
+                  <option value="cash">Cash in Hand (Counter Till)</option>
+                  <option value="bank_transfer">Bank Transfer / Cheque</option>
+                </select>
+              </div>
+
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <Icon icon="heroicons:exclamation-triangle" className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  Are you sure you want to disburse this payout? This will mark the statement as <strong>Paid</strong> and record a double-entry Journal Entry in the General Ledger (<code>[5010] Doctor Revenue Share Expense</code> vs <code>[1010] Cash/Bank</code>).
+                </span>
+              </div>
+
+              <div className="flex justify-end gap-2 border-t pt-4">
+                <Button type="button" variant="outline" onClick={() => setDisburseTarget(null)} disabled={submittingDisburse}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingDisburse}
+                  className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold"
+                >
+                  {submittingDisburse ? (
+                    <Icon icon="heroicons:arrow-path" className="w-4 h-4 animate-spin mr-1" />
+                  ) : (
+                    <Icon icon="heroicons:check-circle" className="w-4 h-4 mr-1" />
+                  )}
+                  Confirm & Disburse Payout
                 </Button>
               </div>
             </form>

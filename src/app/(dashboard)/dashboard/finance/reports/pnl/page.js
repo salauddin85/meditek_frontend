@@ -55,7 +55,7 @@ export default function ProfitAndLossPage() {
             Profit & Loss Statement (Income Statement)
           </h1>
           <p className="text-sm text-default-500 mt-1">
-            FR-FIN-009 — Derived strictly from double-entry revenue and expense ledger accounts.
+            Derived strictly from double-entry revenue and expense ledger accounts.
           </p>
         </div>
 

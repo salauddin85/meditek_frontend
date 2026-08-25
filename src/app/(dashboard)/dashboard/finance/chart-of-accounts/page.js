@@ -91,7 +91,7 @@ export default function ChartOfAccountsPage() {
             Chart of Accounts Management
           </h1>
           <p className="text-sm text-default-500 mt-1">
-            FR-FIN-002 — Tenant double-entry master ledger accounts. Protected system accounts cannot be deleted.
+            Tenant double-entry master ledger accounts. Protected system accounts cannot be deleted.
           </p>
         </div>
 

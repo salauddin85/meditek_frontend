@@ -115,7 +115,7 @@ export default function ServiceItemsPage() {
             Charge Master Service Catalog
           </h1>
           <p className="text-sm text-default-500 mt-1">
-            FR-FIN-004 — Central service charge master with tiered pricing (standard, corporate, insurance, staff, camp, contract).
+            Central service charge master with tiered pricing (standard, corporate, insurance, staff, camp, contract).
           </p>
         </div>
 
