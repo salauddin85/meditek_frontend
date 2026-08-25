@@ -335,8 +335,10 @@ export const prescriptionApi = {
 export const laboratoryApi = {
   getCatalogue: (params) => tenantApi.get("/lab/catalogue/", { params: { page_size: 200, ...params } }),
   createTest: (data) => tenantApi.post("/lab/catalogue/", data),
+  updateTest: (id, data) => tenantApi.patch(`/lab/catalogue/${id}/`, data),
+  deleteTest: (id) => tenantApi.delete(`/lab/catalogue/${id}/`),
   getCatalogueGroups: () => tenantApi.get("/lab/catalogue/groups/"),
-  getOrders: (params) => tenantApi.get("/lab/orders/", { params: { page_size: 200, ...params } }),
+  getOrders: (params) => tenantApi.get("/lab/orders/", { params: { page_size: 50, ...params } }),
   getOrder: (id) => tenantApi.get(`/lab/orders/${id}/`),
   createOrder: (data) => tenantApi.post("/lab/orders/", data),
   collectSamples: (orderId) => tenantApi.post(`/lab/orders/${orderId}/collect/`),
@@ -354,6 +356,8 @@ export const laboratoryApi = {
   getHomeCollections: (params) => tenantApi.get("/lab/home-collection/", { params }),
   createHomeCollection: (data) => tenantApi.post("/lab/home-collection/", data),
   assignPhlebotomist: (reqId, data) => tenantApi.patch(`/lab/home-collection/${reqId}/assign/`, data),
+  // Doctors (for ordering reference)
+  getDoctors: (params) => tenantApi.get("/doctors/", { params: { page_size: 100, ...params } }),
 };
 
 // ── Financial Management API functions (MODULE 13) ──────────────────────────────────
