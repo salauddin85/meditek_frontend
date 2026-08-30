@@ -29,32 +29,45 @@ export default function LiveQueueSelectorPage() {
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Load branches on mount
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+    async function loadBranches() {
       try {
-        const [brRes, docRes] = await Promise.all([
-          branchesApi.getBranches(),
-          staffApi.getDoctors(),
-        ]);
-
+        const brRes = await branchesApi.getBranches();
         if (brRes.data?.data) {
           setBranches(brRes.data.data);
           if (brRes.data.data.length > 0) {
             setSelectedBranchId(brRes.data.data[0].id);
           }
         }
+      } catch (err) {
+        toast.error("Failed to load branches.");
+      }
+    }
+    loadBranches();
+  }, []);
+
+  // Fetch doctors whenever selectedBranchId changes
+  useEffect(() => {
+    async function loadDoctors() {
+      setLoading(true);
+      try {
+        const params = selectedBranchId ? { branch_id: selectedBranchId } : {};
+        const docRes = await staffApi.getDoctors(params);
         if (docRes.data?.data) {
-          setDoctors(docRes.data.data);
+          const list = docRes.data.data.results || docRes.data.data;
+          setDoctors(Array.isArray(list) ? list : []);
+        } else {
+          setDoctors([]);
         }
       } catch (err) {
-        toast.error("Failed to load queue selector data.");
+        toast.error("Failed to load doctors.");
       } finally {
         setLoading(false);
       }
     }
-    loadData();
-  }, []);
+    loadDoctors();
+  }, [selectedBranchId]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
