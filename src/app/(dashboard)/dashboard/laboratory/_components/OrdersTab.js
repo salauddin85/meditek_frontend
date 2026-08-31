@@ -67,6 +67,7 @@ export default function OrdersTab({ orders, loading, pagination, page, setPage, 
                 <th className="p-4">Patient</th>
                 <th className="p-4">Priority</th>
                 <th className="p-4">Tests</th>
+                <th className="p-4">Billing / Total</th>
                 <th className="p-4">Sample Barcodes</th>
                 <th className="p-4">Doctor</th>
                 <th className="p-4">Status</th>
@@ -75,9 +76,9 @@ export default function OrdersTab({ orders, loading, pagination, page, setPage, 
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {loading ? (
-                <tr><td colSpan="7" className="p-8 text-center text-slate-400 animate-pulse">Loading orders…</td></tr>
+                <tr><td colSpan="9" className="p-8 text-center text-slate-400 animate-pulse">Loading orders…</td></tr>
               ) : orders.length === 0 ? (
-                <tr><td colSpan="7" className="p-8 text-center text-slate-400">No orders match your search. Try different filters.</td></tr>
+                <tr><td colSpan="9" className="p-8 text-center text-slate-400">No orders match your search. Try different filters.</td></tr>
               ) : orders.map(o => (
                 <tr key={o.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
                   <td className="p-4 font-mono text-xs">
@@ -101,6 +102,29 @@ export default function OrdersTab({ orders, loading, pagination, page, setPage, 
                         </span>
                       ))}
                     </div>
+                  </td>
+                  <td className="p-4">
+                    {o.invoice_number ? (
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-white">
+                          ৳{Number(o.total_amount || 0).toLocaleString()}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded uppercase ${
+                            o.invoice_status === "paid"
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                              : o.invoice_status === "partially_paid"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                              : "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300"
+                          }`}>
+                            {o.invoice_status || "open"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">#{o.invoice_number}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">No bill</span>
+                    )}
                   </td>
                   <td className="p-4 align-top">
                     {o.samples?.length > 0 ? (

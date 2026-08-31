@@ -56,8 +56,13 @@ function ChangePasswordForm() {
   const router = useRouter();
   const logout = useTenantAuthStore((s) => s.logout);
   const [form, setForm] = useState({ old_password: "", new_password: "", confirm: "" });
+  const [showPasswords, setShowPasswords] = useState({ old_password: false, new_password: false, confirm: false });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const toggleShow = (field) => {
+    setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,15 +106,29 @@ function ChangePasswordForm() {
             <label htmlFor={id} className="block text-sm font-semibold text-default-700">
               {label}
             </label>
-            <input
-              id={id}
-              type="password"
-              value={form[field]}
-              onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-              className={`w-full h-9 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${
-                errors[field] ? "border-destructive" : "border-input"
-              }`}
-            />
+            <div className="relative">
+              <input
+                id={id}
+                type={showPasswords[field] ? "text" : "password"}
+                value={form[field]}
+                onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+                className={`w-full h-9 pl-3 pr-10 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                  errors[field] ? "border-destructive" : "border-input"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => toggleShow(field)}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-default-400 hover:text-default-700 focus:outline-none"
+                title={showPasswords[field] ? "Hide password" : "Show password"}
+                tabIndex={-1}
+              >
+                <Icon
+                  icon={showPasswords[field] ? "heroicons:eye-slash" : "heroicons:eye"}
+                  className="w-4 h-4"
+                />
+              </button>
+            </div>
             {errors[field] && <p className="text-destructive text-xs">{errors[field]}</p>}
           </div>
         ))}
