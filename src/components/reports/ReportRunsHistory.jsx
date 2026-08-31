@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
   Table, 
@@ -16,13 +16,11 @@ import {
   Download, 
   RefreshCw, 
   ArrowLeft, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
   FileText, 
   FileSpreadsheet, 
   FileCode2,
-  Calendar
+  Table as TableIcon,
+  Loader2
 } from "lucide-react";
 import { reportsApi } from "@/lib/tenant-api";
 import toast from "react-hot-toast";
@@ -31,11 +29,10 @@ export default function ReportRunsHistory() {
   const [runs, setRuns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const pollTimerRef = useRef(null);
 
   const loadRuns = async (isManual = false) => {
     if (isManual) setRefreshing(true);
-    else setLoading(true);
-
     try {
       const res = await reportsApi.getRuns();
       if (res?.data?.data) {
@@ -44,7 +41,7 @@ export default function ReportRunsHistory() {
       if (isManual) toast.success("History refreshed.");
     } catch (err) {
       console.error("Failed to load runs history:", err);
-      toast.error("Failed to load report execution logs.");
+      if (isManual) toast.error("Failed to load report execution logs.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -53,6 +50,19 @@ export default function ReportRunsHistory() {
 
   useEffect(() => {
     loadRuns();
+
+    // Auto-poll if any run is currently running or queued
+    pollTimerRef.current = setInterval(() => {
+      reportsApi.getRuns().then((res) => {
+        if (res?.data?.data) {
+          setRuns(res.data.data);
+        }
+      }).catch(console.error);
+    }, 4000);
+
+    return () => {
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    };
   }, []);
 
   const getFormatIcon = (fmt) => {
@@ -60,6 +70,7 @@ export default function ReportRunsHistory() {
       case "pdf": return <FileText className="h-4 w-4 text-rose-500" />;
       case "xlsx": return <FileSpreadsheet className="h-4 w-4 text-emerald-600" />;
       case "csv": return <FileCode2 className="h-4 w-4 text-blue-500" />;
+      case "json": return <TableIcon className="h-4 w-4 text-primary" />;
       default: return <FileText className="h-4 w-4 text-default-500" />;
     }
   };
@@ -67,13 +78,21 @@ export default function ReportRunsHistory() {
   const getStatusBadge = (st) => {
     switch (st) {
       case "completed":
-        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] uppercase">Completed</Badge>;
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] uppercase font-semibold">Completed</Badge>;
       case "running":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] uppercase animate-pulse">Running</Badge>;
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] uppercase font-semibold flex items-center gap-1">
+            <Loader2 className="h-3 w-3 animate-spin text-blue-600" /> Running (Celery)
+          </Badge>
+        );
       case "queued":
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] uppercase">Queued</Badge>;
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] uppercase font-semibold flex items-center gap-1">
+            <Loader2 className="h-3 w-3 animate-spin text-amber-600" /> Queued
+          </Badge>
+        );
       case "failed":
-        return <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] uppercase">Failed</Badge>;
+        return <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] uppercase font-semibold">Failed</Badge>;
       default:
         return <Badge variant="outline">{st}</Badge>;
     }
@@ -94,7 +113,7 @@ export default function ReportRunsHistory() {
               Report Execution History & Downloads
             </h1>
             <p className="text-xs text-default-500 mt-0.5">
-              Audit log of generated reports and asynchronous exports
+              Live audit log of asynchronous Celery task runs and generated exports
             </p>
           </div>
         </div>
@@ -121,7 +140,7 @@ export default function ReportRunsHistory() {
                 <TableHead className="font-semibold text-default-700">Format</TableHead>
                 <TableHead className="font-semibold text-default-700">Status</TableHead>
                 <TableHead className="font-semibold text-default-700">Rows</TableHead>
-                <TableHead className="font-semibold text-default-700">Date Range / Params</TableHead>
+                <TableHead className="font-semibold text-default-700">Date Range / Filters</TableHead>
                 <TableHead className="font-semibold text-default-700">Generated At</TableHead>
                 <TableHead className="font-semibold text-default-700 text-right">Download</TableHead>
               </TableRow>
@@ -153,7 +172,7 @@ export default function ReportRunsHistory() {
                     <TableCell>{getStatusBadge(r.status)}</TableCell>
 
                     <TableCell className="font-mono text-default-700">
-                      {r.row_count > 0 ? r.row_count.toLocaleString() : "—"}
+                      {r.row_count > 0 ? r.row_count.toLocaleString() : (r.status === "completed" ? "0" : "—")}
                     </TableCell>
 
                     <TableCell className="text-default-500 font-mono text-[11px]">

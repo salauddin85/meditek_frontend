@@ -21,9 +21,9 @@ import {
   Table as TableIcon, 
   ShieldAlert, 
   Loader2, 
-  Calendar,
   Building2,
-  User
+  User,
+  Sparkles
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { reportsApi, iamApi, financeApi } from "@/lib/tenant-api";
@@ -46,10 +46,10 @@ export default function ReportGeneratorModal({
   const [branches, setBranches] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [running, setRunning] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     if (open) {
-      // Load branches and doctors if needed
       iamApi.getMe().then((res) => {
         if (res?.data?.data?.user?.branches) {
           setBranches(res.data.data.user.branches);
@@ -66,8 +66,29 @@ export default function ReportGeneratorModal({
 
   if (!definition) return null;
 
+  const pollReportRun = async (runId, maxRetries = 40) => {
+    for (let i = 0; i < maxRetries; i++) {
+      await new Promise((r) => setTimeout(r, 1200));
+      try {
+        const res = await reportsApi.getRun(runId);
+        const run = res?.data?.data;
+        if (run?.status === "completed") {
+          return run;
+        } else if (run?.status === "failed") {
+          throw new Error(run.error_message || "Report execution failed in Celery worker.");
+        } else if (run?.status === "running") {
+          setStatusMessage("Celery worker processing data & generating artifact...");
+        }
+      } catch (err) {
+        if (err.message && err.message.includes("failed in Celery")) throw err;
+      }
+    }
+    throw new Error("Report generation timed out. You can download it from History once finished.");
+  };
+
   const handleRun = async () => {
     setRunning(true);
+    setStatusMessage("Enqueuing task in Celery worker queue...");
     try {
       const payload = {
         report_code: definition.code,
@@ -82,32 +103,37 @@ export default function ReportGeneratorModal({
 
       const res = await reportsApi.runReport(payload);
       const data = res?.data?.data;
+      const runId = data?.run?.id;
 
-      if (data?.mode === "async") {
-        toast.success("Report processing queued in background. You can download it from History.");
+      if (!runId) {
+        throw new Error("No report execution task returned.");
+      }
+
+      setStatusMessage("Celery task enqueued. Waiting for completion...");
+      const completedRun = await pollReportRun(runId);
+
+      toast.success("Report generated successfully via Celery!");
+
+      if (format === "json") {
+        onReportGenerated(completedRun.result_data, completedRun);
         onOpenChange(false);
       } else {
-        toast.success("Report generated successfully!");
-        if (format === "json") {
-          onReportGenerated(data?.run?.result_data, data?.run);
-          onOpenChange(false);
-        } else if (data?.run?.id) {
-          const ext = format === "xlsx" ? "xlsx" : format === "pdf" ? "pdf" : "csv";
-          const fname = `${definition.code.toLowerCase()}_${startDate}_to_${endDate}.${ext}`;
-          await reportsApi.downloadFile(data.run.id, fname);
-          onOpenChange(false);
-        }
+        const ext = format === "xlsx" ? "xlsx" : format === "pdf" ? "pdf" : "csv";
+        const fname = `${definition.code.toLowerCase()}_${startDate}_to_${endDate}.${ext}`;
+        await reportsApi.downloadFile(completedRun.id, fname);
+        onOpenChange(false);
       }
     } catch (err) {
       console.error("Report generation error:", err);
-      toast.error(err?.response?.data?.message || "Failed to execute report.");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to execute report.");
     } finally {
       setRunning(false);
+      setStatusMessage("");
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={running ? undefined : onOpenChange}>
       <DialogContent className="sm:max-w-[540px]">
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -124,7 +150,7 @@ export default function ReportGeneratorModal({
           <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
             <ShieldAlert className="h-4 w-4 text-amber-600 flex-none mt-0.5" />
             <div>
-              <span className="font-semibold">Protected Health Information (PHI):</span> This export contains identifiable medical/patient records. All access is logged to the tenant compliance audit trail (FR-RPT-007).
+              <span className="font-semibold">Protected Health Information (PHI):</span> Identifiable medical records. Background Celery export is logged to compliance audit trail (FR-RPT-007).
             </div>
           </div>
         )}
@@ -139,6 +165,7 @@ export default function ReportGeneratorModal({
                 value={startDate} 
                 onChange={(e) => setStartDate(e.target.value)} 
                 className="h-9 text-xs"
+                disabled={running}
               />
             </div>
             <div className="space-y-1.5">
@@ -148,6 +175,7 @@ export default function ReportGeneratorModal({
                 value={endDate} 
                 onChange={(e) => setEndDate(e.target.value)} 
                 className="h-9 text-xs"
+                disabled={running}
               />
             </div>
           </div>
@@ -156,7 +184,7 @@ export default function ReportGeneratorModal({
           {branches.length > 0 && (
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Branch Scope</Label>
-              <Select value={branchId} onValueChange={setBranchId}>
+              <Select value={branchId} onValueChange={setBranchId} disabled={running}>
                 <SelectTrigger className="h-9 text-xs">
                   <Building2 className="h-3.5 w-3.5 mr-1.5 text-default-400" />
                   <SelectValue placeholder="All Tenant Branches" />
@@ -175,7 +203,7 @@ export default function ReportGeneratorModal({
           {(definition.code.includes("DOCTOR") || definition.code.includes("APPOINTMENT")) && (
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Filter by Doctor (Optional)</Label>
-              <Select value={doctorId} onValueChange={setDoctorId}>
+              <Select value={doctorId} onValueChange={setDoctorId} disabled={running}>
                 <SelectTrigger className="h-9 text-xs">
                   <User className="h-3.5 w-3.5 mr-1.5 text-default-400" />
                   <SelectValue placeholder="All Doctors" />
@@ -192,10 +220,14 @@ export default function ReportGeneratorModal({
 
           {/* Export Output Format */}
           <div className="space-y-2 pt-1">
-            <Label className="text-xs font-semibold">Output Format</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold">Output Format</Label>
+              <span className="text-[11px] text-default-400 font-mono">Celery Async Engine</span>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
+                disabled={running}
                 onClick={() => setFormat("json")}
                 className={`flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-all ${
                   format === "json" 
@@ -209,6 +241,7 @@ export default function ReportGeneratorModal({
 
               <button
                 type="button"
+                disabled={running}
                 onClick={() => setFormat("pdf")}
                 className={`flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-all ${
                   format === "pdf" 
@@ -222,6 +255,7 @@ export default function ReportGeneratorModal({
 
               <button
                 type="button"
+                disabled={running}
                 onClick={() => setFormat("xlsx")}
                 className={`flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-all ${
                   format === "xlsx" 
@@ -235,6 +269,7 @@ export default function ReportGeneratorModal({
 
               <button
                 type="button"
+                disabled={running}
                 onClick={() => setFormat("csv")}
                 className={`flex flex-col items-center justify-center p-3 rounded-lg border text-center transition-all ${
                   format === "csv" 
@@ -247,6 +282,14 @@ export default function ReportGeneratorModal({
               </button>
             </div>
           </div>
+
+          {/* Running Status Feedback */}
+          {running && (
+            <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 p-3 text-xs text-primary animate-pulse">
+              <Loader2 className="h-4 w-4 animate-spin flex-none" />
+              <span>{statusMessage || "Celery task processing..."}</span>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="mt-4 flex items-center justify-end gap-2">
@@ -266,8 +309,8 @@ export default function ReportGeneratorModal({
             onClick={handleRun}
             disabled={running}
           >
-            {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-            <span>{running ? "Generating..." : "Run & Export"}</span>
+            {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            <span>{running ? "Processing in Celery..." : "Run in Celery"}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

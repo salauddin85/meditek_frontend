@@ -311,7 +311,7 @@ function ExecutiveDashboardView({ content, revenueAnalytics, appointmentAnalytic
               <span className="flex items-center gap-1 text-emerald-600 font-medium">
                 <CheckCircle2 className="h-3 w-3" /> {cards?.completed_visits || 0} completed
               </span>
-              <span>{cards?.completion_rate || 0}% rate</span>
+              <span>{cards?.completion_rate_pct ?? cards?.completion_rate ?? 0}% rate</span>
             </div>
           </CardContent>
         </Card>
@@ -509,15 +509,16 @@ function ExecutiveDashboardView({ content, revenueAnalytics, appointmentAnalytic
             {paymentMethods.length > 0 ? (
               <div className="space-y-4 pt-2">
                 {paymentMethods.map((pm, idx) => {
-                  const total = paymentMethods.reduce((acc, curr) => acc + curr.total, 0) || 1;
-                  const pct = Math.round((pm.total / total) * 100);
+                  const total = paymentMethods.reduce((acc, curr) => acc + Number(curr.amount || curr.total || 0), 0) || 1;
+                  const amount = Number(pm.amount || pm.total || 0);
+                  const pct = Math.round((amount / total) * 100);
                   return (
                     <div key={idx} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-medium text-default-700 capitalize">
-                          {pm.method.replace("_", " ")} ({pm.count} txns)
+                          {(pm.method || "Payment").replace("_", " ")} ({pm.count || 1} txns)
                         </span>
-                        <span className="font-bold text-default-900">৳{pm.total.toLocaleString()} ({pct}%)</span>
+                        <span className="font-bold text-default-900">৳{amount.toLocaleString()} ({pct}%)</span>
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-default-100">
                         <div 
