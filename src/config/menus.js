@@ -151,6 +151,20 @@ export const tenantMenusConfig = {
         },
       ],
     },
+    {
+      title: "Reports & Analytics",
+      icon: DashBoard,
+      child: [
+        {
+          title: "Report Catalogue",
+          href: "/dashboard/reports",
+        },
+        {
+          title: "Execution History",
+          href: "/dashboard/reports/runs",
+        },
+      ],
+    },
   ],
   sidebarNav: {
     modern: [
@@ -354,6 +368,20 @@ export const tenantMenusConfig = {
           {
             title: "SMS Segment Preview",
             href: "/dashboard/notifications/calculator",
+          },
+        ],
+      },
+      {
+        title: "Reports & Analytics",
+        icon: DashBoard,
+        child: [
+          {
+            title: "Report Catalogue",
+            href: "/dashboard/reports",
+          },
+          {
+            title: "Execution History",
+            href: "/dashboard/reports/runs",
           },
         ],
       },

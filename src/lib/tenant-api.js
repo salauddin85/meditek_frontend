@@ -405,10 +405,34 @@ export const financeApi = {
   getPatients: (params) => tenantApi.get("/patients/", { params }),
 };
 
+// ── Dashboard & Reporting API functions (MODULE 14) ──────────────────────────────────
+export const dashboardApi = {
+  getOverview: (params) => tenantApi.get("/dashboard/", { params }),
+  getAppointmentsAnalytics: (params) => tenantApi.get("/dashboard/appointments/", { params }),
+  getRevenueAnalytics: (params) => tenantApi.get("/dashboard/revenue/", { params }),
+  getLabAnalytics: (params) => tenantApi.get("/dashboard/lab/", { params }),
+  getPatientsAnalytics: (params) => tenantApi.get("/dashboard/patients/", { params }),
+};
 
-
-
-
-
-
-
+export const reportsApi = {
+  getDefinitions: (params) => tenantApi.get("/reports/definitions/", { params }),
+  getDefinition: (code) => tenantApi.get(`/reports/definitions/${code}/`),
+  runReport: (data) => tenantApi.post("/reports/run/", data),
+  getRuns: (params) => tenantApi.get("/reports/runs/", { params }),
+  getRun: (id) => tenantApi.get(`/reports/runs/${id}/`),
+  getDownloadUrl: (id) => `${API_URL}/api/v1/reports/runs/${id}/download/`,
+  downloadFile: async (runId, filename = "report") => {
+    const res = await tenantApi.get(`/reports/runs/${runId}/download/`, {
+      responseType: "blob",
+    });
+    const blob = new Blob([res.data]);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+};
