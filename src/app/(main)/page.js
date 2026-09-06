@@ -31,6 +31,13 @@ import {
   Activity,
   HeartPulse,
   Wifi,
+  Calendar,
+  FileText,
+  ShieldCheck,
+  CheckCircle2,
+  Download,
+  Sparkles,
+  Clock,
 } from "lucide-react";
 
 /* ────────────────────────────────────────────────── */
@@ -91,6 +98,7 @@ const testimonials = [
 const footerLinks = {
   Product: [
     { label: "Features", href: "#features" },
+    { label: "Patient Portal", href: "/portal/login" },
     { label: "Pricing", href: "#" },
     { label: "Integrations", href: "#" },
     { label: "Changelog", href: "#" },
@@ -122,6 +130,7 @@ const navLinks = [
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Why Meditek", href: "#why-meditek" },
+  { label: "Patient Portal", href: "#patient-portal" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -202,16 +211,23 @@ function Header() {
         </div>
 
         {/* Desktop CTA */}
-        <div className="hidden lg:flex lg:items-center lg:gap-x-4">
+        <div className="hidden lg:flex lg:items-center lg:gap-x-3">
+          <Link
+            href="/portal/login"
+            className="text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200/90 hover:bg-teal-100 hover:border-teal-300 transition-all px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs"
+          >
+            <HeartPulse className="h-3.5 w-3.5 text-teal-600" />
+            <span>Patient Portal</span>
+          </Link>
           <Link
             href="/auth/tenant-login"
-            className="text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors px-4 py-2"
+            className="text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors px-3 py-2"
           >
             Sign In
           </Link>
           <Link
             href="/auth/registration"
-            className="text-sm font-semibold bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/25 hover:shadow-teal-600/40"
+            className="text-sm font-semibold bg-teal-600 text-white px-5 py-2 rounded-xl hover:bg-teal-700 transition-all shadow-md shadow-teal-600/25 hover:shadow-teal-600/40"
           >
             Get Started
           </Link>
@@ -245,6 +261,14 @@ function Header() {
                 </a>
               ))}
               <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
+                <Link
+                  href="/portal/login"
+                  onClick={() => setOpen(false)}
+                  className="text-center text-sm font-bold text-teal-700 bg-teal-50 py-2.5 border border-teal-200 rounded-xl hover:bg-teal-100 flex items-center justify-center gap-2"
+                >
+                  <HeartPulse className="h-4 w-4 text-teal-600" />
+                  <span>Patient Portal Login</span>
+                </Link>
                 <Link
                   href="/auth/tenant-login"
                   className="text-center text-sm font-semibold text-slate-700 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50"
@@ -625,6 +649,170 @@ function WhyMeditekSection() {
 }
 
 /* ────────────────────────────────────────────────── */
+/*  PATIENT PORTAL SECTION (MODULE 15)                */
+/* ────────────────────────────────────────────────── */
+
+function PatientPortalSection() {
+  return (
+    <Section id="patient-portal" className="py-24 bg-gradient-to-b from-white via-teal-50/40 to-slate-50 relative overflow-hidden">
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-teal-200/20 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 -right-32 h-96 w-96 rounded-full bg-cyan-200/20 blur-3xl pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+        {/* Section Title */}
+        <motion.div variants={fadeInUp} className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 rounded-full bg-teal-100/70 border border-teal-200 px-3.5 py-1 text-xs font-bold text-teal-800 mb-3">
+            <Sparkles className="h-3.5 w-3.5 text-teal-600" />
+            <span>MODULE 15 — PATIENT PORTAL</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+            Empower Patients with Their Own Dedicated Health Portal
+          </h2>
+          <p className="mt-4 text-base md:text-lg text-slate-600 leading-relaxed">
+            Give your patients direct, passwordless access to view certified diagnostic lab reports, manage consultation appointment schedules, and self-book doctor visits — with strict multi-tenant isolation.
+          </p>
+        </motion.div>
+
+        {/* Two-Column Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* Left Column: Benefits & Action (7 cols) */}
+          <motion.div variants={stagger} className="lg:col-span-7 space-y-5">
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ x: 4, transition: { duration: 0.2 } }}
+              className="flex gap-4 p-5 rounded-2xl bg-white border border-teal-100/80 shadow-sm hover:shadow-md transition-all"
+            >
+              <div className="h-12 w-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 border border-teal-100">
+                <Mail className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 mb-1">Passwordless Email OTP Authentication</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  Fast, credential-theft resistant login with a 6-digit one-time code sent directly to the patient&apos;s registered email address via high-performance Celery asynchronous tasks.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ x: 4, transition: { duration: 0.2 } }}
+              className="flex gap-4 p-5 rounded-2xl bg-white border border-teal-100/80 shadow-sm hover:shadow-md transition-all"
+            >
+              <div className="h-12 w-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 border border-teal-100">
+                <Calendar className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 mb-1">Real-time Appointment Self-Booking</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  Patients can browse doctor profiles, view real-time slot availability, self-book visits within hospital quota limits, and manage cancellations with immediate sync.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ x: 4, transition: { duration: 0.2 } }}
+              className="flex gap-4 p-5 rounded-2xl bg-white border border-teal-100/80 shadow-sm hover:shadow-md transition-all"
+            >
+              <div className="h-12 w-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 border border-teal-100">
+                <FileText className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 mb-1">Verified Pathology &amp; Lab Reports</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  Instant PDF downloads with digital pathologist signoffs and tamper-evident QR verification tokens. Patient records remain strictly isolated to each healthcare tenant.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* CTA Button and trust badges */}
+            <motion.div variants={fadeInUp} className="pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <Link
+                href="/portal/login"
+                className="inline-flex items-center justify-center gap-2.5 bg-teal-600 text-white font-bold px-8 py-3.5 rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/25 hover:shadow-teal-600/40 hover:-translate-y-0.5 text-sm sm:text-base w-full sm:w-auto"
+              >
+                <HeartPulse className="h-5 w-5" />
+                <span>Launch Patient Portal</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                <span>Strict multi-tenant isolation guaranteed</span>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Column: Portal UI Mockup Preview (5 cols) */}
+          <motion.div variants={fadeInUp} className="lg:col-span-5">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+              {/* Header inside preview */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-10 w-10 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center border border-teal-200">
+                    RK
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 leading-tight">Rahim Khan</h4>
+                    <p className="text-[11px] font-mono text-slate-500">MRN-T1-0001 • Blood: O+</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                  Active Portal
+                </span>
+              </div>
+
+              {/* Consultation preview card */}
+              <div className="mt-4 rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
+                <div className="flex items-center justify-between text-xs text-teal-900 font-semibold mb-2">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5 text-teal-600" />
+                    Next Consultation
+                  </span>
+                  <span className="rounded-full bg-teal-600 text-white text-[10px] px-2 py-0.5 font-bold">
+                    Tomorrow
+                  </span>
+                </div>
+                <div className="text-sm font-bold text-slate-900">Dr. Aminul Islam</div>
+                <div className="text-xs text-slate-600">Consultant Cardiologist • Dhanmondi Branch</div>
+                <div className="mt-2 text-xs font-bold text-teal-700 flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" /> 10:00 AM — Serial #1
+                </div>
+              </div>
+
+              {/* Lab report preview card */}
+              <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="text-[10px] font-semibold text-emerald-700 uppercase">Verified</span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 truncate">Complete Blood Count (CBC)</div>
+                  <div className="text-[11px] text-slate-500">Signed by Chief Pathologist</div>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-teal-600 bg-white border border-teal-200 px-3 py-1.5 rounded-lg shadow-2xs">
+                  <Download className="h-3.5 w-3.5" />
+                  <span>PDF</span>
+                </div>
+              </div>
+
+              {/* Mobile-first pill badge */}
+              <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+                <span className="text-[11px] text-slate-500 font-medium">
+                  📱 Mobile-First: Seamlessly works at 360px viewport
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/* ────────────────────────────────────────────────── */
 /*  TESTIMONIALS                                      */
 /* ────────────────────────────────────────────────── */
 
@@ -877,6 +1065,7 @@ export default function Home() {
         <FeaturesSection />
         <HowItWorksSection />
         <WhyMeditekSection />
+        <PatientPortalSection />
         <TestimonialsSection />
         <FAQSection />
         <CTASection />
