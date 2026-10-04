@@ -19,7 +19,11 @@ import {
   CheckCircle2, 
   ArrowUpRight,
   Pill,
-  BarChart3
+  BarChart3,
+  X,
+  Server,
+  Zap,
+  CheckCircle
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -51,6 +55,8 @@ const PERIOD_OPTIONS = [
   { value: "this_year", label: "This Year" },
 ];
 
+const DEMO_MODAL_KEY = "meditek_demo_modal_shown";
+
 export default function Overview() {
   const { user } = useTenantAuthStore();
   const [period, setPeriod] = useState("today");
@@ -61,6 +67,20 @@ export default function Overview() {
   const [dashboardData, setDashboardData] = useState(null);
   const [revenueAnalytics, setRevenueAnalytics] = useState(null);
   const [appointmentAnalytics, setAppointmentAnalytics] = useState(null);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+
+  // Show demo modal once per login session
+  useEffect(() => {
+    const alreadyShown = sessionStorage.getItem(DEMO_MODAL_KEY);
+    if (!alreadyShown) {
+      // Small delay so page renders before modal appears
+      const t = setTimeout(() => {
+        setShowDemoModal(true);
+        sessionStorage.setItem(DEMO_MODAL_KEY, "1");
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   // Fetch branches on mount
   useEffect(() => {
@@ -123,6 +143,82 @@ export default function Overview() {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* ── Demo Server Notice Modal ── */}
+      {showDemoModal && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center p-4"
+          style={{ backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", backgroundColor: "rgba(26,46,53,0.55)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowDemoModal(false); }}
+          id="demo-server-modal-overlay"
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl bg-white border border-gray-200 shadow-[0_20px_60px_rgba(0,0,0,0.18)] overflow-hidden"
+            style={{ animation: "demoModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both" }}
+          >
+            <style>{`
+              @keyframes demoModalIn {
+                from { opacity: 0; transform: scale(0.88) translateY(16px); }
+                to   { opacity: 1; transform: scale(1) translateY(0); }
+              }
+            `}</style>
+
+            {/* Green accent top bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#00A67E] via-[#33C2A0] to-[#00A67E]" />
+
+            {/* Close button */}
+            <button
+              id="demo-modal-close"
+              onClick={() => setShowDemoModal(false)}
+              className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="p-7 pt-6">
+              {/* Icon + Title */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#00A67E]/10 border border-[#00A67E]/20 shrink-0">
+                  <Server className="w-6 h-6 text-[#00A67E]" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#1A2E35] leading-tight">You&apos;re on a Demo Server</h2>
+                  <p className="text-xs text-[#00A67E] font-medium mt-0.5">Free hosting · Limited environment</p>
+                </div>
+              </div>
+
+              {/* Body */}
+              <p className="text-sm text-gray-600 leading-relaxed mb-5">
+                This Meditek instance is hosted on a <span className="font-semibold text-[#1A2E35]">free demo server</span> for evaluation purposes.
+                Some features may respond slowly or be temporarily unavailable due to server limitations.
+              </p>
+
+              {/* Info bullets */}
+              <div className="space-y-2.5 mb-6">
+                {[
+                  { icon: CheckCircle, text: "100% of features are fully implemented" },
+                  { icon: Zap, text: "All workflows function on any production / live server" },
+                  { icon: Server, text: "Free tier may have cold-start delays or API limits" },
+                ].map(({ icon: Icon, text }, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <Icon className="w-4 h-4 text-[#00A67E] mt-0.5 shrink-0" />
+                    <span className="text-sm text-gray-600">{text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <button
+                id="demo-modal-got-it"
+                onClick={() => setShowDemoModal(false)}
+                className="w-full py-2.5 rounded-xl bg-[#00A67E] hover:bg-[#008A6A] text-white font-semibold text-sm transition-all duration-200 shadow-[0_4px_14px_rgba(0,166,126,0.35)] hover:shadow-[0_6px_20px_rgba(0,166,126,0.45)]"
+              >
+                Got it, Continue to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HEADER CONTROLS */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

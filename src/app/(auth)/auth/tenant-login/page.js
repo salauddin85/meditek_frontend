@@ -14,6 +14,9 @@ const PRIMARY_LIGHT = "#33C2A0";
 const PRIMARY_DARK = "#008A6A";
 const PRIMARY_GLOW = "rgba(0, 166, 126, 0.25)";
 
+const DEMO_EMAIL = "unitedspec@olipii.com";
+const DEMO_PASSWORD = "Root25809";
+
 export default function TenantLoginPage() {
   const router = useRouter();
   const setAuth = useTenantAuthStore((s) => s.setAuth);
@@ -22,6 +25,14 @@ export default function TenantLoginPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [credsCopied, setCredsCopied] = useState(false);
+
+  const fillDemoCredentials = () => {
+    setForm({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
+    setErrors({});
+    setCredsCopied(true);
+    setTimeout(() => setCredsCopied(false), 2000);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -102,6 +113,56 @@ export default function TenantLoginPage() {
           <p className="text-[#00A67E] mt-1 text-sm font-medium tracking-wide">
             Cloud-Native Healthcare Platform
           </p>
+        </div>
+        {/* Demo Credentials Card */}
+        <div className="mb-4 rounded-2xl border border-[#00A67E]/25 bg-gradient-to-br from-[#00A67E]/8 to-[#00A67E]/3 p-5 shadow-[0_2px_12px_rgba(0,166,126,0.12)]">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center justify-center w-6 h-6 rounded-md bg-[#00A67E]/15">
+              <Icon icon="heroicons:key" className="w-3.5 h-3.5 text-[#00A67E]" />
+            </div>
+            <span className="text-sm font-semibold text-[#1A2E35]">Demo Access Credentials</span>
+            <span className="ml-auto text-[10px] font-medium text-[#00A67E] bg-[#00A67E]/10 px-2 py-0.5 rounded-full">Free Tier</span>
+          </div>
+
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2 rounded-lg bg-white/60 border border-[#00A67E]/15 px-3 py-2">
+              <Icon icon="heroicons:envelope" className="w-3.5 h-3.5 text-[#00A67E] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-gray-400 leading-none mb-0.5">Email</p>
+                <p className="text-xs font-mono font-medium text-[#1A2E35] truncate">{DEMO_EMAIL}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-white/60 border border-[#00A67E]/15 px-3 py-2">
+              <Icon icon="heroicons:lock-closed" className="w-3.5 h-3.5 text-[#00A67E] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-gray-400 leading-none mb-0.5">Password</p>
+                <p className="text-xs font-mono font-medium text-[#1A2E35]">{DEMO_PASSWORD}</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="fill-demo-credentials"
+            onClick={fillDemoCredentials}
+            className={`w-full py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+              credsCopied
+                ? "bg-[#00A67E] text-white shadow-[0_4px_14px_rgba(0,166,126,0.35)]"
+                : "bg-white border border-[#00A67E]/30 text-[#00A67E] hover:bg-[#00A67E] hover:text-white hover:shadow-[0_4px_14px_rgba(0,166,126,0.35)]"
+            }`}
+          >
+            {credsCopied ? (
+              <>
+                <Icon icon="heroicons:check-circle" className="w-4 h-4" />
+                Credentials Applied!
+              </>
+            ) : (
+              <>
+                <Icon icon="heroicons:arrow-down-on-square" className="w-4 h-4" />
+                Use These Credentials
+              </>
+            )}
+          </button>
         </div>
 
         {/* Card - Clean white design like landing page */}
