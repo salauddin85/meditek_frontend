@@ -2,8 +2,9 @@
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import toast from "react-hot-toast";
-import { Loader2, Building2, User, Mail, Phone, MapPin, Eye, EyeOff } from "lucide-react";
+import { Loader2, Building2, User, Mail, Phone, MapPin, Eye, EyeOff, FlaskConical, ArrowRight } from "lucide-react";
 import { useRegistrationStore } from "@/store/meditek";
 import apiClient from "@/lib/api-client";
 
@@ -86,6 +87,31 @@ export default function OrgInfoStep() {
 
   return (
     <div>
+      {/* Demo / Evaluation Banner */}
+      <div className="mb-6 rounded-2xl border border-[#00A67E]/25 bg-gradient-to-br from-[#00A67E]/8 to-[#00A67E]/3 p-4 shadow-[0_2px_10px_rgba(0,166,126,0.10)]">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#00A67E]/15 border border-[#00A67E]/20 shrink-0">
+              <FlaskConical className="w-4.5 h-4.5 text-[#00A67E]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-800 leading-tight">Here for project evaluation?</p>
+              <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+                Skip registration — log in with our pre-configured demo hospital account.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/auth/tenant-login"
+            id="goto-demo-login"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#00A67E] hover:bg-[#008A6A] text-white text-xs font-semibold transition-all duration-200 shadow-[0_3px_10px_rgba(0,166,126,0.30)] hover:shadow-[0_5px_16px_rgba(0,166,126,0.40)] whitespace-nowrap shrink-0"
+          >
+            Login with Demo Account
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
+
       <div className="mb-8">
         <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">Register Your Organization</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Step 1 of 5 — Tell us about your healthcare facility.</p>
