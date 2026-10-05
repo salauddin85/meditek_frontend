@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Building2,
   CheckCircle2,
+  Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { portalService } from "@/lib/portal-api";
@@ -25,6 +26,7 @@ export default function PortalLoginPage() {
   const [email, setEmail] = useState("");
   const [tenantSlug, setTenantSlug] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [debugOtp, setDebugOtp] = useState("");
 
@@ -180,9 +182,103 @@ export default function PortalLoginPage() {
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    setErrorMsg("");
+    try {
+      const res = await portalService.demoLogin();
+      const data = res.data?.data || {};
+
+      setSession({
+        sessionToken: data.session_token,
+        sessionExpiresAt: data.session_expires_at,
+        patient: data.patient,
+      });
+
+      toast.success("Welcome! Loading the evaluation portal…");
+      router.push("/portal/dashboard");
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.userMessage ||
+        "Demo login failed. Please try the normal login.";
+      setErrorMsg(msg);
+      toast.error(msg);
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
       <div className="w-full max-w-md">
+
+        {/* ── Evaluation Quick-Login Banner ── */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)",
+            border: "1px solid rgba(99,179,237,0.25)",
+            borderRadius: "1rem",
+            padding: "1.25rem 1.5rem",
+            marginBottom: "1.25rem",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#93c5fd",
+              marginBottom: "0.35rem",
+            }}
+          >
+            🎓 Project Evaluation Mode
+          </p>
+          <p
+            style={{
+              fontSize: "0.8rem",
+              color: "#cbd5e1",
+              marginBottom: "1rem",
+              lineHeight: 1.5,
+            }}
+          >
+            Skip the OTP flow and explore the Patient Portal instantly with a demo account.
+          </p>
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={demoLoading}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+              width: "100%",
+              padding: "0.65rem 1rem",
+              borderRadius: "0.625rem",
+              border: "none",
+              background: demoLoading
+                ? "rgba(59,130,246,0.4)"
+                : "linear-gradient(90deg, #2563eb 0%, #3b82f6 100%)",
+              color: "#ffffff",
+              fontSize: "0.875rem",
+              fontWeight: 700,
+              cursor: demoLoading ? "not-allowed" : "pointer",
+              boxShadow: demoLoading ? "none" : "0 2px 12px rgba(59,130,246,0.45)",
+              transition: "opacity 0.2s, box-shadow 0.2s",
+            }}
+          >
+            {demoLoading ? (
+              <RefreshCw style={{ height: "1rem", width: "1rem", animation: "spin 1s linear infinite" }} />
+            ) : (
+              <Zap style={{ height: "1rem", width: "1rem" }} />
+            )}
+            <span>{demoLoading ? "Signing in…" : "Evaluator? Click here to login directly"}</span>
+          </button>
+        </div>
+
         {/* Portal Header */}
         <div className="text-center mb-6">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-500/25">

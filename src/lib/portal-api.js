@@ -55,6 +55,7 @@ export const portalService = {
   // Authentication
   requestOtp: (data) => portalApi.post("/login/request-otp/", data),
   verifyOtp: (data) => portalApi.post("/login/verify-otp/", data),
+  demoLogin: () => portalApi.post("/login/demo/"),
   logout: () => portalApi.post("/logout/"),
 
   // Patient Profile
