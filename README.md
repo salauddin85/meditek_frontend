@@ -188,4 +188,4 @@ npm run lint
 
 ## Author
 
-**Antu Saha** · [LinkedIn](https://www.linkedin.com/in/antusaha970/) · antusaha.dev@gmail.com
+**Md. Salauddin** · [LinkedIn](https://www.linkedin.com/in/salauddinahmed85/) · ahmedsalauddin677785@gmail.com
