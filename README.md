@@ -2,7 +2,7 @@
 
 > A multi-tenant SaaS clinic & hospital management platform — giving Bangladesh's healthcare facilities a complete digital command center to manage patients, clinical records, billing, labs, and staff from a single, secure dashboard.
 
-[🌐 Live Demo](https://meditek-frontend-cpy.vercel.app/) · [📦 Backend Repo](https://github.com/pepoltek/pepoltek_meditek_backend)
+[🌐 Live Demo](https://meditek-frontend-cpy.vercel.app/) · [📦 Backend Repo](https://github.com/salauddin85/pepoltek_meditek_backend)
 
 ![MEDITek Dashboard](public/images/overview/dashboard.png)
 
